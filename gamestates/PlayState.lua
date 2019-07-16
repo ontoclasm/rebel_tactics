@@ -5,9 +5,8 @@ PlayState.name = "Play Screen"
 function PlayState:enter()
 	self.game_frame = 0
 
-	-- self.mainmap = map:new(64, 64)
-	-- self.mainmap:fill_main()
-	-- _G.mainmap = self.mainmap
+	self.current_map = Map(16, 12)
+	self.current_map:fill_debug()
 
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
@@ -20,7 +19,7 @@ function PlayState:update(dt)
 
 	-- handle input
 	controller:update()
-	mouse_x, mouse_y = love.mouse.getPosition()
+	mouse_sx, mouse_sy = love.mouse.getPosition()
 
 	if not self.paused then
 		if controller:pressed('menu') then
@@ -56,14 +55,23 @@ function PlayState:draw()
 	-- love.graphics.setCanvas(game_canvas)
 	love.graphics.clear(color.bg)
 
-	-- img.render()
+	img.render(self)
 
 	-- gui
 
 	-- debug msg
-	love.graphics.print("Time: "..string.format("%.0f", self.game_frame / 60), 0, 0)
-	love.graphics.setColor(color.yellow)
-	love.graphics.print("FPS: "..love.timer.getFPS(), 2, window_h - 80)
+	love.graphics.setColor(color.ltblue)
+	love.graphics.print("Time: "..string.format("%.0f", self.game_frame / 60), 2, 2)
+	love.graphics.setColor(color.white)
+	local mouse_gx, mouse_gy = math.floor(mouse_sx / TILE_SIZE), math.floor(mouse_sy / TILE_SIZE)
+	if self.current_map:in_bounds(mouse_gx, mouse_gy) then
+		love.graphics.print("n: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "n") or "x")..
+			", w: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "w") or "x")..
+			", s: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "s") or "x")..
+			", e: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "e") or "x"), 2, window_h - 58)
+	end
+	love.graphics.print("Cursor: "..mouse_gx..", "..mouse_gy, 2, window_h - 38)
+	love.graphics.print("FPS: "..love.timer.getFPS(), 2, window_h - 18)
 	love.graphics.setColor(color.white)
 	love.graphics.setShader()
 	if self.paused then
@@ -75,7 +83,7 @@ function PlayState:draw()
 		love.graphics.setColor(color.white)
 	end
 
-	love.graphics.circle("fill", mouse_x, mouse_y, 2)
+	love.graphics.draw(img.cursor, mouse_sx - 5, mouse_sy - 5)
 	-- love.graphics.setCanvas()
 	-- love.graphics.draw(game_canvas)
 end

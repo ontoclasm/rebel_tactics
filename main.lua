@@ -11,13 +11,11 @@ function love.load()
 	controller = input.setup_controller()
 	love.mouse.setVisible(false)
 	love.mouse.setGrabbed(true)
-	mouse_x, mouse_y = 0, 0
+	mouse_sx, mouse_sy = 0, 0
 
+	img.setup()
 	love.graphics.setFont(font)
 	love.graphics.setLineWidth(1)
-
-	-- img.setup()
-	-- particles.init()
 
 	-- world = tiny.world(
 	-- 	PlayerControlSystem,
