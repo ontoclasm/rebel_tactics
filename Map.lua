@@ -82,16 +82,23 @@ function Map:fill_debug()
 				self:set_block(gx, gy, 1)
 			end
 
-			if gy == 1 then
+			if mymath.one_chance_in(32) then
+				self:set_edge(gx, gy, "n", 3)
+				self:set_edge(gx, gy, "s", 3)
+				self:set_edge(gx, gy, "e", 3)
+				self:set_edge(gx, gy, "w", 3)
+			end
+
+			if gy == 1 or mymath.one_chance_in(32) then
 				self:set_edge(gx, gy, "n", 2)
 			end
-			if gx == 1 then
+			if gx == 1 or mymath.one_chance_in(32) then
 				self:set_edge(gx, gy, "w", 2)
 			end
-			if gy == self.height then
+			if gy == self.height or mymath.one_chance_in(32) then
 				self:set_edge(gx, gy, "s", 2)
 			end
-			if gx == self.width then
+			if gx == self.width or mymath.one_chance_in(32) then
 				self:set_edge(gx, gy, "e", 2)
 			end
 		end

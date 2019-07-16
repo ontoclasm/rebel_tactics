@@ -24,6 +24,9 @@ function img.setup()
 	img.tileset:setFilter("nearest", "linear")
 
 	img.nq("block",					 0,	 0)
+	img.nq("edge_thick",			 1,	 0)
+	img.nq("edge_dotted",			 2,	 0)
+
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
@@ -46,17 +49,59 @@ function img.update_tileset_batch(map)
 	-- rebuild the batch if we need to recenter it, or if the dirty flag is set
 	if img.tileset_batch_is_dirty or new_gx ~= tileset_batch_old_gx or new_gy ~= tileset_batch_old_gy then
 		img.tileset_batch:clear()
+
 		local tile_name = nil
 		local tile_color = nil
+
+		-- draw blocks
 		for gx=0, img.view_tilewidth-1 do
 			for gy=0, img.view_tileheight-1 do
 				if map:in_bounds(gx, gy) then
-					tile_name, tile_color = img.terrain_tile(map:get_block(gx, gy))
-					img.tileset_batch:setColor(tile_color)
-					img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE)
+					tile_name, tile_color = img.block_tile(map:get_block(gx, gy))
+					if tile_name then
+						img.tileset_batch:setColor(tile_color)
+						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE)
+					end
 				end
 			end
 		end
+
+		-- draw edges
+		for gx=0, img.view_tilewidth-1 do
+			for gy=0, img.view_tileheight-1 do
+				if map:in_bounds(gx, gy) then
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx, gy, "n"))
+					if tile_name then
+						img.tileset_batch:setColor(tile_color)
+						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE - 2)
+					end
+				elseif map:in_bounds(gx, gy - 1) then -- southern edge
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx, gy - 1, "s"))
+					if tile_name then
+						img.tileset_batch:setColor(tile_color)
+						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE - 2)
+					end
+				end
+			end
+		end
+		for gx=0, img.view_tilewidth-1 do
+			for gy=0, img.view_tileheight-1 do
+				if map:in_bounds(gx, gy) then
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx, gy, "w"))
+					if tile_name then
+						img.tileset_batch:setColor(tile_color)
+						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE + 2, gy * TILE_SIZE, PI_2)
+					end
+				elseif map:in_bounds(gx - 1, gy) then -- eastern edge
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx - 1, gy, "e"))
+					if tile_name then
+						img.tileset_batch:setColor(tile_color)
+						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE + 2, gy * TILE_SIZE, PI_2)
+					end
+				end
+			end
+		end
+
 		img.tileset_batch:setColor(color.white)
 
 		img.tileset_batch:flush()
@@ -66,11 +111,21 @@ function img.update_tileset_batch(map)
 	end
 end
 
-function img.terrain_tile(block)
-	if block == 1 then
-		return "block", color.ltblue
+function img.block_tile(block)
+	if block == 2 then
+		return "block", color.dkblue
 	else
 		return "block", color.blue
+	end
+end
+
+function img.edge_tile(edge)
+	if edge == 2 then
+		return "edge_thick", color.white
+	elseif edge == 3 then
+		return "edge_dotted", color.yellow
+	else
+		return nil, nil
 	end
 end
 

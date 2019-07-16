@@ -65,7 +65,8 @@ function PlayState:draw()
 	love.graphics.setColor(color.white)
 	local mouse_gx, mouse_gy = math.floor(mouse_sx / TILE_SIZE), math.floor(mouse_sy / TILE_SIZE)
 	if self.current_map:in_bounds(mouse_gx, mouse_gy) then
-		love.graphics.print("n: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "n") or "x")..
+		love.graphics.print("b: "..(self.current_map:get_block(mouse_gx, mouse_gy) or "x")..
+			", n: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "n") or "x")..
 			", w: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "w") or "x")..
 			", s: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "s") or "x")..
 			", e: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "e") or "x"), 2, window_h - 58)

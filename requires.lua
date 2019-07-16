@@ -15,3 +15,6 @@ font = love.graphics.newImageFont("assets/img/font.png",
 		" abcdefghijklmnopqrstuvwxyz" ..
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0" ..
 		"123456789.,!?-+/():;%&`'*#=[]\"|_")
+
+-- constants
+PI_2 = math.pi / 2
