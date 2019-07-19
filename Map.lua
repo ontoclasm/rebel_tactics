@@ -7,6 +7,7 @@ function Map:init(width, height)
 	self.width, self.height = width, height
 	self.blocks = {}
 	self.edges = {}
+	self.pawns = {}
 end
 
 function Map:in_bounds(gx, gy)

@@ -5,13 +5,13 @@ PlayState.name = "Play Screen"
 function PlayState:enter()
 	self.game_frame = 0
 
-	self.current_map = Map(16, 12)
+	self.current_map = Map(24, 16)
 	self.current_map:fill_debug()
 
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
 
-	-- camera.update()
+	camera.set_location(36, 36 + 48)
 end
 
 function PlayState:update(dt)
@@ -21,6 +21,9 @@ function PlayState:update(dt)
 	controller:update()
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 
+	-- updates even when paused?
+	camera.update()
+
 	if not self.paused then
 		if controller:pressed('menu') then
 			self:pause()
@@ -29,13 +32,24 @@ function PlayState:update(dt)
 
 		self.game_frame = self.game_frame + 1
 
+		if controller:pressed('r_left') then
+			camera.shift_target(-24, 0)
+		end
+		if controller:pressed('r_right') then
+			camera.shift_target(24, 0)
+		end
+		if controller:pressed('r_up') then
+			camera.shift_target(0, -24)
+		end
+		if controller:pressed('r_down') then
+			camera.shift_target(0, 24)
+		end
+
 		-- tiny.update(world, TIMESTEP)
 
 		-- if self.gameover then
 		-- 	gamestate_manager.switch_to("GameOver")
 		-- 	break
-		-- else
-		-- 	camera.update()
 		-- end
 	else
 		if controller:pressed('menu') then
@@ -63,7 +77,7 @@ function PlayState:draw()
 	love.graphics.setColor(color.ltblue)
 	love.graphics.print("Time: "..string.format("%.0f", self.game_frame / 60), 2, 2)
 	love.graphics.setColor(color.white)
-	local mouse_gx, mouse_gy = math.floor(mouse_sx / TILE_SIZE), math.floor(mouse_sy / TILE_SIZE)
+	local mouse_gx, mouse_gy = math.floor((mouse_sx + camera.px)/ TILE_SIZE), math.floor((mouse_sy + camera.py) / TILE_SIZE)
 	if self.current_map:in_bounds(mouse_gx, mouse_gy) then
 		love.graphics.print("b: "..(self.current_map:get_block(mouse_gx, mouse_gy) or "x")..
 			", n: "..(self.current_map:get_edge(mouse_gx, mouse_gy, "n") or "x")..

@@ -3,6 +3,7 @@ class = require "lib/30log"
 baton = require "lib/baton"
 tiny = require "lib/tiny"
 
+camera = require "camera"
 color = require "color"
 gamestate_manager = require "gamestate_manager"
 input = require "input"

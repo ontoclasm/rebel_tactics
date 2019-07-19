@@ -4,8 +4,7 @@ function img.render(state)
 	love.graphics.setColor(color.white)
 
 	img.update_tileset_batch(state.current_map)
-	-- love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
-	love.graphics.draw(img.tileset_batch, 0, 0)
+	love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 
 	-- draw all drawables
 	-- tiny.refresh(world)
@@ -43,8 +42,7 @@ end
 local tileset_batch_old_gx = -9999
 local tileset_batch_old_gy = -9999
 function img.update_tileset_batch(map)
-	-- new_gx, new_gy = math.floor(camera.x/TILE_SIZE), math.floor(camera.y/TILE_SIZE)
-	new_gx, new_gy = 0, 0
+	new_gx, new_gy = math.floor(camera.px/TILE_SIZE), math.floor(camera.py/TILE_SIZE)
 
 	-- rebuild the batch if we need to recenter it, or if the dirty flag is set
 	if img.tileset_batch_is_dirty or new_gx ~= tileset_batch_old_gx or new_gy ~= tileset_batch_old_gy then
@@ -54,10 +52,10 @@ function img.update_tileset_batch(map)
 		local tile_color = nil
 
 		-- draw blocks
-		for gx=0, img.view_tilewidth-1 do
-			for gy=0, img.view_tileheight-1 do
-				if map:in_bounds(gx, gy) then
-					tile_name, tile_color = img.block_tile(map:get_block(gx, gy))
+		for gx=0, img.view_tilewidth do
+			for gy=0, img.view_tileheight do
+				if map:in_bounds(gx + new_gx, gy + new_gy) then
+					tile_name, tile_color = img.block_tile(map:get_block(gx + new_gx, gy + new_gy))
 					if tile_name then
 						img.tileset_batch:setColor(tile_color)
 						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE)
@@ -67,16 +65,16 @@ function img.update_tileset_batch(map)
 		end
 
 		-- draw edges
-		for gx=0, img.view_tilewidth-1 do
-			for gy=0, img.view_tileheight-1 do
-				if map:in_bounds(gx, gy) then
-					tile_name, tile_color = img.edge_tile(map:get_edge(gx, gy, "n"))
+		for gx=0, img.view_tilewidth do
+			for gy=0, img.view_tileheight do
+				if map:in_bounds(gx + new_gx, gy + new_gy) then
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx + new_gx, gy + new_gy, "n"))
 					if tile_name then
 						img.tileset_batch:setColor(tile_color)
 						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE - 2)
 					end
-				elseif map:in_bounds(gx, gy - 1) then -- southern edge
-					tile_name, tile_color = img.edge_tile(map:get_edge(gx, gy - 1, "s"))
+				elseif map:in_bounds(gx + new_gx, gy + new_gy - 1) then -- southern edge
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx + new_gx, gy + new_gy - 1, "s"))
 					if tile_name then
 						img.tileset_batch:setColor(tile_color)
 						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE, gy * TILE_SIZE - 2)
@@ -84,16 +82,16 @@ function img.update_tileset_batch(map)
 				end
 			end
 		end
-		for gx=0, img.view_tilewidth-1 do
-			for gy=0, img.view_tileheight-1 do
-				if map:in_bounds(gx, gy) then
-					tile_name, tile_color = img.edge_tile(map:get_edge(gx, gy, "w"))
+		for gx=0, img.view_tilewidth do
+			for gy=0, img.view_tileheight do
+				if map:in_bounds(gx + new_gx, gy + new_gy) then
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx + new_gx, gy + new_gy, "w"))
 					if tile_name then
 						img.tileset_batch:setColor(tile_color)
 						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE + 2, gy * TILE_SIZE, PI_2)
 					end
-				elseif map:in_bounds(gx - 1, gy) then -- eastern edge
-					tile_name, tile_color = img.edge_tile(map:get_edge(gx - 1, gy, "e"))
+				elseif map:in_bounds(gx + new_gx - 1, gy + new_gy) then -- eastern edge
+					tile_name, tile_color = img.edge_tile(map:get_edge(gx + new_gx - 1, gy + new_gy, "e"))
 					if tile_name then
 						img.tileset_batch:setColor(tile_color)
 						img.tileset_batch:add(img.tile[tile_name], gx * TILE_SIZE + 2, gy * TILE_SIZE, PI_2)
