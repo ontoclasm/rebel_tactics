@@ -34,12 +34,6 @@ function Map:get_block(x, y)
 	end
 end
 
--- for each row of tiles we need (2 * width + 1) edges
--- thus, the edges around (x, y) are stored at:
--- n: [x + (y - 1) * (2 * self.width + 1)]
--- w: [x + (y - 1) * (2 * self.width + 1) + self.width]
--- s: [x + y * (2 * self.width + 1)]
--- e: [(x + 1) + (y - 1) * (2 * self.width + 1) + self.width]
 function Map:set_edge(x, y, side, enum)
 	if not self:in_bounds(x, y) then
 		error("out of bounds: " .. x .. ", " .. y)
@@ -104,6 +98,84 @@ function Map:find_random_floor()
 	error("couldn't find floor")
 end
 
+function Map:move_cost( from_x, from_y, dx, dy )
+	-- 99: can't move there
+	-- 10: ends move to step here
+	--  1: takes a normal step
+	if dx == 1 then
+		if dy == 1 then
+			-- se
+			return math.max( self:move_cost( from_x, from_y, 1,0 ),
+							 self:move_cost( from_x+1, from_y, 0,1 ),
+							 self:move_cost( from_x, from_y, 0,1 ),
+							 self:move_cost( from_x, from_y+1, 1,0 ) )
+		elseif dy == 0 then
+			-- e
+			return math.max( block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ,
+							 edge_move_cost( self:get_edge( from_x, from_y, "e" ) ) )
+		else -- dy == -1
+			-- ne
+			return math.max( self:move_cost( from_x, from_y, 1,0 ),
+							 self:move_cost( from_x+1, from_y, 0,-1 ),
+							 self:move_cost( from_x, from_y, 0,-1 ),
+							 self:move_cost( from_x, from_y-1, 1,0 ) )
+		end
+	elseif dx == 0 then
+		if dy == 1 then
+			-- s
+			return math.max( block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ,
+							 edge_move_cost( self:get_edge( from_x, from_y, "s" ) ) )
+		elseif dy == 0 then
+			-- ???
+			error()
+		else -- dy == -1
+			-- n
+			return math.max( block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ,
+							 edge_move_cost( self:get_edge( from_x, from_y, "n" ) ) )
+		end
+	else -- dx == -1
+		if dy == 1 then
+			-- sw
+			return math.max( self:move_cost( from_x, from_y, -1,0 ),
+							 self:move_cost( from_x-1, from_y, 0,1 ),
+							 self:move_cost( from_x, from_y, 0,1 ),
+							 self:move_cost( from_x, from_y+1, -1,0 ) )
+		elseif dy == 0 then
+			-- w
+			return math.max( block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ,
+							 edge_move_cost( self:get_edge( from_x, from_y, "w" ) ) )
+		else -- dy == -1
+			-- nw
+			return math.max( self:move_cost( from_x, from_y, -1,0 ),
+							 self:move_cost( from_x-1, from_y, 0,-1 ),
+							 self:move_cost( from_x, from_y, 0,-1 ),
+							 self:move_cost( from_x, from_y-1, -1,0 ) )
+		end
+	end
+
+	return 1
+end
+
+function block_move_cost( from, to )
+	if from == 2 or to == 2 then
+		return 99
+	else
+		return 1
+	end
+end
+
+function edge_move_cost( edge )
+	if edge then
+		if edge == 2 then
+			return 99
+		else
+			return 10
+		end
+	else
+		return 1
+	end
+end
+
 -- debug
 function Map:fill_debug()
 	for x = 1, self.width do
@@ -114,13 +186,18 @@ function Map:fill_debug()
 				self:set_block(x, y, 1)
 			end
 
-			if mymath.one_chance_in(32) then
+			if mymath.one_chance_in(16) then
 				self:set_edge(x, y, "n", 3)
-				self:set_edge(x, y, "s", 3)
-				self:set_edge(x, y, "e", 3)
+			end
+			if mymath.one_chance_in(16) then
 				self:set_edge(x, y, "w", 3)
 			end
-
+			if mymath.one_chance_in(16) then
+				self:set_edge(x, y, "s", 3)
+			end
+			if mymath.one_chance_in(16) then
+				self:set_edge(x, y, "e", 3)
+			end
 			if y == 1 or mymath.one_chance_in(32) then
 				self:set_edge(x, y, "n", 2)
 			end

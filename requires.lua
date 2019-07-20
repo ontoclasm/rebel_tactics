@@ -6,9 +6,11 @@ tiny = require "lib/tiny"
 camera = require "camera"
 color = require "color"
 gamestate_manager = require "gamestate_manager"
+grid = require "grid"
 input = require "input"
 img = require "img"
 mymath = require "mymath"
+pathfinder = require "pathfinder"
 
 Map = require "Map"
 

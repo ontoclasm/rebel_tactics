@@ -7,16 +7,27 @@ function img.render(state)
 	love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 
 	-- draw mouse cursor
-	if state.current_map:in_bounds(state.mouse_gx, state.mouse_gy) then
+	if state.current_map:in_bounds(state.mouse_x, state.mouse_y) then
 		love.graphics.setColor(color.rouge)
-		love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_gx, state.mouse_gy))
+		img.draw_to_grid("cursor_mouse", state.mouse_x, state.mouse_y)
+
+		-- love.graphics.setColor(color.rouge)
+		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_x, state.mouse_y))
 	end
 
 	-- draw pawns
 	for _, p in pairs(state.pawn_list) do
 		-- xxx cull off-screens?
-		love.graphics.setColor(p.color)
-		love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
+		love.graphics.setColor((p.id == state.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15))
+			or p.color)
+		img.draw_to_grid("pawn", p.x, p.y)
+
+		-- if p.id == state.selected_pawn then
+		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15)))
+		-- else
+		-- 	love.graphics.setColor(p.color)
+		-- end
+		-- love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
 	end
 
 	-- tiny.refresh(world)
@@ -39,6 +50,7 @@ function img.setup()
 	img.nq("edge_dotted",			 2,	 0)
 	img.nq("pawn",					 3,	 0)
 	img.nq("cursor_mouse",			 4,	 0)
+	img.nq("dot",					 5,	 0)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
@@ -124,7 +136,7 @@ end
 
 function img.block_tile(block)
 	if block == 2 then
-		return "block", color.dkblue
+		return "block", color.ltgrey
 	else
 		return "block", color.blue
 	end
@@ -138,6 +150,12 @@ function img.edge_tile(edge)
 	else
 		return nil, nil
 	end
+end
+
+local px, py
+function img.draw_to_grid(tilename, x, y)
+	px, py = camera.screen_point_from_grid_point(x, y)
+	love.graphics.draw(img.tileset, img.tile[tilename], px, py, 0, 1, 1, TILE_CENTER, TILE_CENTER)
 end
 
 return img

@@ -7,6 +7,7 @@ function PlayState:enter()
 
 	self.current_map = Map(24, 16)
 	self.current_map:fill_debug()
+	pathfinder:reset()
 
 	self.pawn_list = {}
 	for pawn_id = 1, 8 do
@@ -16,13 +17,15 @@ function PlayState:enter()
 		self.current_map:set_pawn(spawn_x, spawn_y, pawn_id)
 	end
 
+	self.selected_pawn = nil
+
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
 
 	camera.set_location(36, 36 + 48)
 
 	mouse_sx, mouse_sy = love.mouse.getPosition()
-	self.mouse_gx, self.mouse_gy = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
+	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
 end
 
 function PlayState:update(dt)
@@ -31,7 +34,7 @@ function PlayState:update(dt)
 	-- handle input
 	controller:update()
 	mouse_sx, mouse_sy = love.mouse.getPosition()
-	self.mouse_gx, self.mouse_gy = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
+	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
 
 	-- updates even when paused?
 	camera.update()
@@ -55,6 +58,25 @@ function PlayState:update(dt)
 		end
 		if controller:pressed('r_down') then
 			camera.shift_target(0, 24)
+		end
+		if controller:pressed('r1') then
+			local pid = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
+			if not pid then
+				self.selected_pawn = nil
+			elseif pid ~= self.selected_pawn then
+				self.selected_pawn = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
+				self.selected_start_frame = gui_frame
+			end
+		end
+
+		if pathfinder.on then
+			if not self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
+				pathfinder:reset()
+			elseif self.mouse_x ~= pathfinder.origin_x or self.mouse_y ~= pathfinder.origin_y then
+				pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
+			end
+		elseif self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
+			pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
 		end
 
 		-- tiny.update(world, TIMESTEP)
@@ -85,19 +107,44 @@ function PlayState:draw()
 
 	-- gui
 
+	-- pathfinder debug
+	if pathfinder.on then
+		local en
+		for x = 1, self.current_map.width do
+			for y = 1, self.current_map.height do
+				en = pathfinder.energies[ grid.hash( x, y ) ]
+				if en then
+					if en >= 1000000 then
+						love.graphics.setColor( color.white )
+						img.draw_to_grid("dot", x, y)
+						-- love.graphics.print( ( en % 1000 ), camera.screen_point_from_grid_point( x, y ) )
+					elseif en >= 1000 then
+						love.graphics.setColor( color.ltblue )
+						img.draw_to_grid("dot", x, y)
+						-- love.graphics.print( ( en % 1000 ), camera.screen_point_from_grid_point( x, y ) )
+					else
+						love.graphics.setColor( color.orange )
+						img.draw_to_grid("dot", x, y)
+						-- love.graphics.print( en, camera.screen_point_from_grid_point( x, y ) )
+					end
+				end
+			end
+		end
+	end
+
 	-- debug msg
 	love.graphics.setColor(color.ltblue)
 	love.graphics.print("Time: "..string.format("%.0f", self.game_frame / 60), 2, 2)
 	love.graphics.setColor(color.white)
-	if self.current_map:in_bounds(self.mouse_gx, self.mouse_gy) then
-		love.graphics.print("b: "..(self.current_map:get_block(self.mouse_gx, self.mouse_gy) or "x")..
-			", n: "..(self.current_map:get_edge(self.mouse_gx, self.mouse_gy, "n") or "x")..
-			", w: "..(self.current_map:get_edge(self.mouse_gx, self.mouse_gy, "w") or "x")..
-			", s: "..(self.current_map:get_edge(self.mouse_gx, self.mouse_gy, "s") or "x")..
-			", e: "..(self.current_map:get_edge(self.mouse_gx, self.mouse_gy, "e") or "x")..
-			", pawn: "..(self.current_map:get_pawn(self.mouse_gx, self.mouse_gy, "e") or "x"), 2, window_h - 58)
+	if self.current_map:in_bounds(self.mouse_x, self.mouse_y) then
+		love.graphics.print("b: "..(self.current_map:get_block(self.mouse_x, self.mouse_y) or "x")..
+			", n: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "n") or "x")..
+			", w: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "w") or "x")..
+			", s: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "s") or "x")..
+			", e: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "e") or "x")..
+			", pawn: "..(self.current_map:get_pawn(self.mouse_x, self.mouse_y, "e") or "x"), 2, window_h - 58)
 	end
-	love.graphics.print("Cursor: "..self.mouse_gx..", "..self.mouse_gy, 2, window_h - 38)
+	love.graphics.print("Cursor: "..self.mouse_x..", "..self.mouse_y, 2, window_h - 38)
 	love.graphics.print("FPS: "..love.timer.getFPS(), 2, window_h - 18)
 	love.graphics.setColor(color.white)
 	love.graphics.setShader()

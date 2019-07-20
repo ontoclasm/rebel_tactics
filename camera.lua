@@ -39,7 +39,7 @@ function camera.grid_point_from_screen_point(sx, sy)
 end
 
 function camera.screen_point_from_grid_point(gx, gy)
-	return (gx * TILE_SIZE) - camera.px, (gy * TILE_SIZE) - camera.py
+	return ((gx+0.5) * TILE_SIZE) - camera.px, ((gy+0.5) * TILE_SIZE) - camera.py
 end
 
 -- #verifyvenuz

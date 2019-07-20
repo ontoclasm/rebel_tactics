@@ -1,6 +1,7 @@
 require "requires"
 
 TILE_SIZE = 24
+TILE_CENTER = 12
 
 function love.load()
 	gui_frame = 0
