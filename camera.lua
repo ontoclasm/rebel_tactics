@@ -34,6 +34,14 @@ function camera.set_location(px, py)
 	camera.update()
 end
 
+function camera.grid_point_from_screen_point(sx, sy)
+	return math.floor((sx + camera.px) / TILE_SIZE), math.floor((sy + camera.py) / TILE_SIZE)
+end
+
+function camera.screen_point_from_grid_point(gx, gy)
+	return (gx * TILE_SIZE) - camera.px, (gy * TILE_SIZE) - camera.py
+end
+
 -- #verifyvenuz
 function camera.shake(v, angle)
 	angle = angle or love.math.random() * 2 * math.pi

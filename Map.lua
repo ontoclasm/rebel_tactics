@@ -1,5 +1,8 @@
 local Map = class("Map")
 
+local MAP_HASH = 512
+local EDGE_ROW_HASH_OFFSET = (MAP_HASH * 2) + 1
+
 function Map:init(width, height)
 	if (not width) or width <= 0 or (not height) or height <= 0 then
 		error("bad map bounds: " .. width .. ", " .. height)
@@ -10,97 +13,125 @@ function Map:init(width, height)
 	self.pawns = {}
 end
 
-function Map:in_bounds(gx, gy)
-	return gx >= 1 and gx <= self.width and gy >= 1 and gy <= self.height
+function Map:in_bounds(x, y)
+	return x >= 1 and x <= self.width and y >= 1 and y <= self.height
 end
 
--- the block at (gx, gy) is stored at [gx + (gy - 1) * width]
-function Map:set_block(gx, gy, enum)
-	if not self:in_bounds(gx, gy) then
-		error("out of bounds: " .. gx .. ", " .. gy)
+-- the block at (x, y) is stored at [x + (y - 1) * width]
+function Map:set_block(x, y, enum)
+	if not self:in_bounds(x, y) then
+		error("out of bounds: " .. x .. ", " .. y)
 	else
-		self.blocks[gx + (gy - 1) * self.width] = enum
+		self.blocks[x + (y - 1) * MAP_HASH] = enum
 	end
 end
 
-function Map:get_block(gx, gy)
-	if not self:in_bounds(gx, gy) then
-		error("out of bounds: " .. gx .. ", " .. gy)
+function Map:get_block(x, y)
+	if not self:in_bounds(x, y) then
+		error("out of bounds: " .. x .. ", " .. y)
 	else
-		return self.blocks[gx + (gy - 1) * self.width]
+		return self.blocks[x + (y - 1) * MAP_HASH]
 	end
 end
 
 -- for each row of tiles we need (2 * width + 1) edges
--- thus, the edges around (gx, gy) are stored at:
--- n: [gx + (gy - 1) * (2 * self.width + 1)]
--- w: [gx + (gy - 1) * (2 * self.width + 1) + self.width]
--- s: [gx + gy * (2 * self.width + 1)]
--- e: [(gx + 1) + (gy - 1) * (2 * self.width + 1) + self.width]
-function Map:set_edge(gx, gy, side, enum)
-	if not self:in_bounds(gx, gy) then
-		error("out of bounds: " .. gx .. ", " .. gy)
+-- thus, the edges around (x, y) are stored at:
+-- n: [x + (y - 1) * (2 * self.width + 1)]
+-- w: [x + (y - 1) * (2 * self.width + 1) + self.width]
+-- s: [x + y * (2 * self.width + 1)]
+-- e: [(x + 1) + (y - 1) * (2 * self.width + 1) + self.width]
+function Map:set_edge(x, y, side, enum)
+	if not self:in_bounds(x, y) then
+		error("out of bounds: " .. x .. ", " .. y)
 	else
 		if side == "n" then
-			self.edges[gx + (gy - 1) * (2 * self.width + 1)] = enum
+			self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET] = enum
 		elseif side == "w" then
-			self.edges[gx + (gy - 1) * (2 * self.width + 1) + self.width] = enum
+			self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH] = enum
 		elseif side == "s" then
-			self.edges[gx + gy * (2 * self.width + 1)] = enum
+			self.edges[x + y * EDGE_ROW_HASH_OFFSET] = enum
 		elseif side == "e" then
-			self.edges[(gx + 1) + (gy - 1) * (2 * self.width + 1) + self.width] = enum
+			self.edges[(x + 1) + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH] = enum
 		else
 			error("bad edge: " .. side)
 		end
 	end
 end
 
-function Map:get_edge(gx, gy, side)
-	if not self:in_bounds(gx, gy) then
-		error("out of bounds: " .. gx .. ", " .. gy)
+function Map:get_edge(x, y, side)
+	if not self:in_bounds(x, y) then
+		error("out of bounds: " .. x .. ", " .. y)
 	else
 		if side == "n" then
-			return self.edges[gx + (gy - 1) * (2 * self.width + 1)]
+			return self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET]
 		elseif side == "w" then
-			return self.edges[gx + (gy - 1) * (2 * self.width + 1) + self.width]
+			return self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
 		elseif side == "s" then
-			return self.edges[gx + gy * (2 * self.width + 1)]
+			return self.edges[x + y * EDGE_ROW_HASH_OFFSET]
 		elseif side == "e" then
-			return self.edges[(gx + 1) + (gy - 1) * (2 * self.width + 1) + self.width]
+			return self.edges[(x + 1) + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
 		else
 			error("bad edge: " .. side)
 		end
 	end
+end
+
+function Map:set_pawn(x, y, pawn_id)
+	if not self:in_bounds(x, y) then
+		error("out of bounds: " .. x .. ", " .. y)
+	else
+		self.pawns[x + (y - 1) * MAP_HASH] = pawn_id
+	end
+end
+
+function Map:get_pawn(x, y)
+	if not self:in_bounds(x, y) then
+		error("out of bounds: " .. x .. ", " .. y)
+	else
+		return self.pawns[x + (y - 1) * MAP_HASH]
+	end
+end
+
+function Map:find_random_floor()
+	local x, y
+	for tries = 1, 1000 do
+		x = love.math.random(1, self.width)
+		y = love.math.random(1, self.height)
+		if self:get_block(x, y) == 1 then
+			return x, y
+		end
+	end
+	error("couldn't find floor")
 end
 
 -- debug
 function Map:fill_debug()
-	for gx = 1, self.width do
-		for gy = 1, self.height do
+	for x = 1, self.width do
+		for y = 1, self.height do
 			if mymath.one_chance_in(8) then
-				self:set_block(gx, gy, 2)
+				self:set_block(x, y, 2)
 			else
-				self:set_block(gx, gy, 1)
+				self:set_block(x, y, 1)
 			end
 
 			if mymath.one_chance_in(32) then
-				self:set_edge(gx, gy, "n", 3)
-				self:set_edge(gx, gy, "s", 3)
-				self:set_edge(gx, gy, "e", 3)
-				self:set_edge(gx, gy, "w", 3)
+				self:set_edge(x, y, "n", 3)
+				self:set_edge(x, y, "s", 3)
+				self:set_edge(x, y, "e", 3)
+				self:set_edge(x, y, "w", 3)
 			end
 
-			if gy == 1 or mymath.one_chance_in(32) then
-				self:set_edge(gx, gy, "n", 2)
+			if y == 1 or mymath.one_chance_in(32) then
+				self:set_edge(x, y, "n", 2)
 			end
-			if gx == 1 or mymath.one_chance_in(32) then
-				self:set_edge(gx, gy, "w", 2)
+			if x == 1 or mymath.one_chance_in(32) then
+				self:set_edge(x, y, "w", 2)
 			end
-			if gy == self.height or mymath.one_chance_in(32) then
-				self:set_edge(gx, gy, "s", 2)
+			if y == self.height or mymath.one_chance_in(32) then
+				self:set_edge(x, y, "s", 2)
 			end
-			if gx == self.width or mymath.one_chance_in(32) then
-				self:set_edge(gx, gy, "e", 2)
+			if x == self.width or mymath.one_chance_in(32) then
+				self:set_edge(x, y, "e", 2)
 			end
 		end
 	end
