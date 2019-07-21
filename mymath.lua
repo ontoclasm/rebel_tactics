@@ -70,4 +70,15 @@ function mymath.random_spread(angle, spread) return angle + (spread * (2 * love.
 
 function mymath.weighted_spread(angle, spread) return angle + (spread * (love.math.random() - love.math.random())) end
 
+function mymath.reverse_array (arr)
+	local i, j = 1, #arr
+
+	while i < j do
+		arr[i], arr[j] = arr[j], arr[i]
+
+		i = i + 1
+		j = j - 1
+	end
+end
+
 return mymath

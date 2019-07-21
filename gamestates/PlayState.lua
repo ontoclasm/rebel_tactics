@@ -22,10 +22,11 @@ function PlayState:enter()
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
 
-	camera.set_location(36, 36 + 48)
+	camera.set_location(12 * 24 + 12, 8 * 24 + 12)
 
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
+	img.tileset_batch_is_dirty = true
 end
 
 function PlayState:update(dt)
@@ -63,21 +64,23 @@ function PlayState:update(dt)
 			local pid = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
 			if not pid then
 				self.selected_pawn = nil
+				pathfinder:reset()
 			elseif pid ~= self.selected_pawn then
 				self.selected_pawn = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
 				self.selected_start_frame = gui_frame
+				pathfinder:build_move_radius( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 6006 )
 			end
 		end
 
-		if pathfinder.on then
-			if not self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
-				pathfinder:reset()
-			elseif self.mouse_x ~= pathfinder.origin_x or self.mouse_y ~= pathfinder.origin_y then
-				pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
-			end
-		elseif self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
-			pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
-		end
+		-- if pathfinder.on then
+		-- 	if not self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
+		-- 		pathfinder:reset()
+		-- 	elseif self.mouse_x ~= pathfinder.origin_x or self.mouse_y ~= pathfinder.origin_y then
+		-- 		pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
+		-- 	end
+		-- elseif self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
+		-- 	pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
+		-- end
 
 		-- tiny.update(world, TIMESTEP)
 
@@ -106,31 +109,6 @@ function PlayState:draw()
 	img.render(self)
 
 	-- gui
-
-	-- pathfinder debug
-	if pathfinder.on then
-		local en
-		for x = 1, self.current_map.width do
-			for y = 1, self.current_map.height do
-				en = pathfinder.energies[ grid.hash( x, y ) ]
-				if en then
-					if en >= 1000000 then
-						love.graphics.setColor( color.white )
-						img.draw_to_grid("dot", x, y)
-						-- love.graphics.print( ( en % 1000 ), camera.screen_point_from_grid_point( x, y ) )
-					elseif en >= 1000 then
-						love.graphics.setColor( color.ltblue )
-						img.draw_to_grid("dot", x, y)
-						-- love.graphics.print( ( en % 1000 ), camera.screen_point_from_grid_point( x, y ) )
-					else
-						love.graphics.setColor( color.orange )
-						img.draw_to_grid("dot", x, y)
-						-- love.graphics.print( en, camera.screen_point_from_grid_point( x, y ) )
-					end
-				end
-			end
-		end
-	end
 
 	-- debug msg
 	love.graphics.setColor(color.ltblue)
@@ -175,9 +153,9 @@ function PlayState:focus(f)
 	end
 end
 
--- function PlayState:exit()
--- 	tiny.clearEntities(world)
--- end
+function PlayState:exit()
+	pathfinder:reset()
+end
 
 -- -- -- --
 

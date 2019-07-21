@@ -99,26 +99,46 @@ function Map:find_random_floor()
 end
 
 function Map:move_cost( from_x, from_y, dx, dy )
+	-- XXX rewrite
+	-- don't want to hop over walls diagonally, it looks weird
+
 	-- 99: can't move there
 	-- 10: ends move to step here
 	--  1: takes a normal step
+
+	if math.abs( dx ) > 1 or math.abs( dy ) > 1 or self:get_pawn( from_x + dx, from_y + dy ) then
+		return 99
+	else
+		return self:terrain_move_cost( from_x, from_y, dx, dy )
+	end
+end
+
+function Map:terrain_move_cost( from_x, from_y, dx, dy )
 	if dx == 1 then
 		if dy == 1 then
 			-- se
-			return math.max( self:move_cost( from_x, from_y, 1,0 ),
-							 self:move_cost( from_x+1, from_y, 0,1 ),
-							 self:move_cost( from_x, from_y, 0,1 ),
-							 self:move_cost( from_x, from_y+1, 1,0 ) )
+			if math.max( self:terrain_move_cost( from_x, from_y, 1,0 ),
+						 self:terrain_move_cost( from_x+1, from_y, 0,1 ),
+						 self:terrain_move_cost( from_x, from_y, 0,1 ),
+						 self:terrain_move_cost( from_x, from_y+1, 1,0 ) ) == 1 then
+				return 1
+			else
+				return 99
+			end
 		elseif dy == 0 then
 			-- e
 			return math.max( block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ,
 							 edge_move_cost( self:get_edge( from_x, from_y, "e" ) ) )
 		else -- dy == -1
 			-- ne
-			return math.max( self:move_cost( from_x, from_y, 1,0 ),
-							 self:move_cost( from_x+1, from_y, 0,-1 ),
-							 self:move_cost( from_x, from_y, 0,-1 ),
-							 self:move_cost( from_x, from_y-1, 1,0 ) )
+			if math.max( self:terrain_move_cost( from_x, from_y, 1,0 ),
+						 self:terrain_move_cost( from_x+1, from_y, 0,-1 ),
+						 self:terrain_move_cost( from_x, from_y, 0,-1 ),
+						 self:terrain_move_cost( from_x, from_y-1, 1,0 ) ) == 1 then
+				return 1
+			else
+				return 99
+			end
 		end
 	elseif dx == 0 then
 		if dy == 1 then
@@ -136,24 +156,30 @@ function Map:move_cost( from_x, from_y, dx, dy )
 	else -- dx == -1
 		if dy == 1 then
 			-- sw
-			return math.max( self:move_cost( from_x, from_y, -1,0 ),
-							 self:move_cost( from_x-1, from_y, 0,1 ),
-							 self:move_cost( from_x, from_y, 0,1 ),
-							 self:move_cost( from_x, from_y+1, -1,0 ) )
+			if math.max( self:terrain_move_cost( from_x, from_y, -1,0 ),
+						 self:terrain_move_cost( from_x-1, from_y, 0,1 ),
+						 self:terrain_move_cost( from_x, from_y, 0,1 ),
+						 self:terrain_move_cost( from_x, from_y+1, -1,0 ) ) == 1 then
+				return 1
+			else
+				return 99
+			end
 		elseif dy == 0 then
 			-- w
 			return math.max( block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ,
 							 edge_move_cost( self:get_edge( from_x, from_y, "w" ) ) )
 		else -- dy == -1
 			-- nw
-			return math.max( self:move_cost( from_x, from_y, -1,0 ),
-							 self:move_cost( from_x-1, from_y, 0,-1 ),
-							 self:move_cost( from_x, from_y, 0,-1 ),
-							 self:move_cost( from_x, from_y-1, -1,0 ) )
+			if math.max( self:terrain_move_cost( from_x, from_y, -1,0 ),
+						 self:terrain_move_cost( from_x-1, from_y, 0,-1 ),
+						 self:terrain_move_cost( from_x, from_y, 0,-1 ),
+						 self:terrain_move_cost( from_x, from_y-1, -1,0 ) ) == 1 then
+				return 1
+			else
+				return 99
+			end
 		end
 	end
-
-	return 1
 end
 
 function block_move_cost( from, to )

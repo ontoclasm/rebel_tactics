@@ -15,6 +15,51 @@ function img.render(state)
 		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_x, state.mouse_y))
 	end
 
+	-- pathfinder debug
+	if pathfinder.on then
+		local en
+		for x = 1, state.current_map.width do
+			for y = 1, state.current_map.height do
+				en = pathfinder.energies[ grid.hash( x, y ) ]
+				if en then
+					if en >= 1000000 then
+						love.graphics.setColor( color.white )
+						img.draw_to_grid("dot", x, y)
+						love.graphics.print( pathfinder.hops[ grid.hash( x, y ) ] or "", camera.screen_point_from_grid_point( x, y ) )
+					elseif en >= 1000 then
+						love.graphics.setColor( color.ltblue )
+						img.draw_to_grid("dot", x, y)
+						love.graphics.print( pathfinder.hops[ grid.hash( x, y ) ] or "", camera.screen_point_from_grid_point( x, y ) )
+					else
+						love.graphics.setColor( color.orange )
+						img.draw_to_grid("dot", x, y)
+						love.graphics.print( pathfinder.hops[ grid.hash( x, y ) ] or "", camera.screen_point_from_grid_point( x, y ) )
+					end
+				end
+			end
+		end
+
+		local path = pathfinder:path_to( state.mouse_x, state.mouse_y )
+		if path then
+			local a, b, c, d, en
+			for i = 1, #path - 1 do
+				en = pathfinder.energies[ path[ i+1 ] ]
+				if en >= 1000000 then
+					love.graphics.setColor( color.white )
+				elseif en >= 1000 then
+					love.graphics.setColor( color.ltblue )
+				else
+					love.graphics.setColor( color.orange )
+				end
+				a, b = grid.unhash( path[ i ] )
+				c, d = grid.unhash( path[ i+1 ] )
+				a, b = camera.screen_point_from_grid_point( a, b )
+				c, d = camera.screen_point_from_grid_point( c, d )
+				love.graphics.line( a, b, c, d )
+			end
+		end
+	end
+
 	-- draw pawns
 	for _, p in pairs(state.pawn_list) do
 		-- xxx cull off-screens?
@@ -51,6 +96,8 @@ function img.setup()
 	img.nq("pawn",					 3,	 0)
 	img.nq("cursor_mouse",			 4,	 0)
 	img.nq("dot",					 5,	 0)
+	img.nq("arrow_n",				 0,	 1)
+	img.nq("arrow_ne",				 1,	 1)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
