@@ -68,8 +68,13 @@ function PlayState:update(dt)
 			elseif pid ~= self.selected_pawn then
 				self.selected_pawn = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
 				self.selected_start_frame = gui_frame
-				pathfinder:build_move_radius( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 6006 )
+				pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 6006 )
+				-- pathfinder:build_move_radius( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 6006 )
 			end
+		end
+
+		if pathfinder.debug_running and (gui_frame - self.selected_start_frame) % 5 == 0 then
+			pathfinder:build_move_radius_debug_step( self.current_map )
 		end
 
 		-- if pathfinder.on then

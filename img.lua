@@ -22,40 +22,43 @@ function img.render(state)
 			for y = 1, state.current_map.height do
 				en = pathfinder.energies[ grid.hash( x, y ) ]
 				if en then
-					if en >= 1000000 then
-						love.graphics.setColor( color.white )
-						img.draw_to_grid("dot", x, y)
-						love.graphics.print( pathfinder.hops[ grid.hash( x, y ) ] or "", camera.screen_point_from_grid_point( x, y ) )
-					elseif en >= 1000 then
-						love.graphics.setColor( color.ltblue )
-						img.draw_to_grid("dot", x, y)
-						love.graphics.print( pathfinder.hops[ grid.hash( x, y ) ] or "", camera.screen_point_from_grid_point( x, y ) )
-					else
-						love.graphics.setColor( color.orange )
-						img.draw_to_grid("dot", x, y)
-						love.graphics.print( pathfinder.hops[ grid.hash( x, y ) ] or "", camera.screen_point_from_grid_point( x, y ) )
-					end
+					img.set_color_by_energy( en )
+					img.draw_to_grid("dot", x, y)
 				end
 			end
 		end
 
-		local path = pathfinder:path_to( state.mouse_x, state.mouse_y )
-		if path then
-			local a, b, c, d, en
-			for i = 1, #path - 1 do
-				en = pathfinder.energies[ path[ i+1 ] ]
-				if en >= 1000000 then
-					love.graphics.setColor( color.white )
-				elseif en >= 1000 then
-					love.graphics.setColor( color.ltblue )
-				else
-					love.graphics.setColor( color.orange )
+		if pathfinder.debug_last_h then
+			for h, _ in pairs( pathfinder.fringes ) do
+				x, y = grid.unhash( h )
+				img.set_color_by_energy( pathfinder.energies[ h ] )
+				img.draw_to_grid("cursor_mouse", x, y)
+			end
+
+			local path = pathfinder:path_to( grid.unhash( pathfinder.debug_last_h ) )
+			if path then
+				local a, b, c, d, en
+				for i = 1, #path - 1 do
+					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
+					a, b = grid.unhash( path[ i ] )
+					c, d = grid.unhash( path[ i+1 ] )
+					a, b = camera.screen_point_from_grid_point( a, b )
+					c, d = camera.screen_point_from_grid_point( c, d )
+					love.graphics.line( a, b, c, d )
 				end
-				a, b = grid.unhash( path[ i ] )
-				c, d = grid.unhash( path[ i+1 ] )
-				a, b = camera.screen_point_from_grid_point( a, b )
-				c, d = camera.screen_point_from_grid_point( c, d )
-				love.graphics.line( a, b, c, d )
+			end
+		else
+			local path = pathfinder:path_to( state.mouse_x, state.mouse_y )
+			if path then
+				local a, b, c, d, en
+				for i = 1, #path - 1 do
+					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
+					a, b = grid.unhash( path[ i ] )
+					c, d = grid.unhash( path[ i+1 ] )
+					a, b = camera.screen_point_from_grid_point( a, b )
+					c, d = camera.screen_point_from_grid_point( c, d )
+					love.graphics.line( a, b, c, d )
+				end
 			end
 		end
 	end
@@ -96,8 +99,8 @@ function img.setup()
 	img.nq("pawn",					 3,	 0)
 	img.nq("cursor_mouse",			 4,	 0)
 	img.nq("dot",					 5,	 0)
-	img.nq("arrow_n",				 0,	 1)
-	img.nq("arrow_ne",				 1,	 1)
+	img.nq("cap_thick",				 1,	 1)
+	img.nq("cap_dotted",			 2,	 1)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
@@ -203,6 +206,16 @@ local px, py
 function img.draw_to_grid(tilename, x, y)
 	px, py = camera.screen_point_from_grid_point(x, y)
 	love.graphics.draw(img.tileset, img.tile[tilename], px, py, 0, 1, 1, TILE_CENTER, TILE_CENTER)
+end
+
+function img.set_color_by_energy( en )
+	if en >= 1000000 then
+		love.graphics.setColor( color.white )
+	elseif en >= 1000 then
+		love.graphics.setColor( color.ltblue )
+	else
+		love.graphics.setColor( color.orange )
+	end
 end
 
 return img
