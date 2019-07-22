@@ -70,6 +70,36 @@ function Map:get_edge(x, y, side)
 	end
 end
 
+function Map:get_nw_cap(x, y)
+	if not (x >= 1 and x <= self.width + 1 and y >= 1 and y <= self.height + 1) then
+		error("out of bounds: " .. x .. ", " .. y)
+	else
+		local cap = 99
+
+		local edge = self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET]
+		if edge then
+			cap = math.min(cap, edge)
+		end
+
+		edge = self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
+		if edge then
+			cap = math.min(cap, edge)
+		end
+
+		edge = self.edges[(x - 1) + (y - 1) * EDGE_ROW_HASH_OFFSET]
+		if edge then
+			cap = math.min(cap, edge)
+		end
+
+		edge = self.edges[x + (y - 2) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
+		if edge then
+			cap = math.min(cap, edge)
+		end
+
+		return cap
+	end
+end
+
 function Map:set_pawn(x, y, pawn_id)
 	if not self:in_bounds(x, y) then
 		error("out of bounds: " .. x .. ", " .. y)

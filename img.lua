@@ -175,6 +175,19 @@ function img.update_tileset_batch(map)
 			end
 		end
 
+		-- draw wall caps
+		for x=0, img.view_tilewidth+1 do
+			for y=0, img.view_tileheight+1 do
+				if x + corner_x >= 1 and x + corner_x <= map.width + 1 and y + corner_y >= 1 and y + corner_y <= map.height + 1 then
+					tile_name, tile_color = img.cap_tile(map:get_nw_cap(x + corner_x, y + corner_y))
+					if tile_name then
+						img.tileset_batch:setColor(tile_color)
+						img.tileset_batch:add(img.tile[tile_name], (x - 0.5) * TILE_SIZE, (y - 0.5) * TILE_SIZE)
+					end
+				end
+			end
+		end
+
 		img.tileset_batch:setColor(color.white)
 
 		img.tileset_batch:flush()
@@ -197,6 +210,16 @@ function img.edge_tile(edge)
 		return "edge_thick", color.white
 	elseif edge == 3 then
 		return "edge_dotted", color.yellow
+	else
+		return nil, nil
+	end
+end
+
+function img.cap_tile(edge)
+	if edge == 2 then
+		return "cap_thick", color.white
+	elseif edge == 3 then
+		return "cap_dotted", color.yellow
 	else
 		return nil, nil
 	end
