@@ -286,7 +286,7 @@ function Map:fill_debug()
 				self:set_block(x, y, 99)
 			elseif roll > 80 then
 				self:set_block(x, y, 3)
-			elseif roll > 50 then
+			elseif roll > 20 then
 				self:set_block(x, y, 2)
 			else
 				self:set_block(x, y, 1)

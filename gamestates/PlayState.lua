@@ -13,7 +13,11 @@ function PlayState:enter()
 	for pawn_id = 1, 8 do
 		-- place a pawn
 		local spawn_x, spawn_y = self.current_map:find_random_floor()
-		table.insert( self.pawn_list, {id = pawn_id, color = {1, pawn_id/8, 0}, x = spawn_x, y = spawn_y} )
+		table.insert( self.pawn_list, {
+			id = pawn_id, color = {1, pawn_id/8, 0},
+			x = spawn_x, y = spawn_y,
+			actions = 2
+		} )
 		self.current_map:set_pawn( spawn_x, spawn_y, pawn_id )
 	end
 
@@ -73,10 +77,9 @@ function PlayState:update( dt )
 			end
 			if controller:pressed( 'r2' ) and self.selected_pawn then
 				-- move selected pawn to mouse point
-				local path = pathfinder:path_to( self.mouse_x, self.mouse_y )
+				local path, energy_cost = pathfinder:path_to( self.mouse_x, self.mouse_y )
 				if path and #path > 1 then
-					self:move_pawn( self.selected_pawn, path )
-					self:unselect_pawn()
+					self:move_pawn( self.selected_pawn, path, energy_cost )
 				end
 			end
 		elseif self.input_mode == "animating" then
@@ -176,10 +179,23 @@ end
 -- -- -- --
 
 function PlayState:select_pawn( pid )
+	local p = self.pawn_list[pid]
+	if not p then
+		error("missing pawn: "..pid)
+	end
+
+	-- build move radius
+	if p.actions == 2 then
+		-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+		pathfinder:build_move_radius( self.current_map, p.x, p.y, 5005000 )
+	elseif p.actions == 1 then
+		pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
+	else
+		pathfinder:reset()
+	end
+
 	self.selected_pawn = pid
 	self.selected_start_frame = gui_frame
-	-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
-	pathfinder:build_move_radius( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
 end
 
 function PlayState:unselect_pawn()
@@ -187,15 +203,27 @@ function PlayState:unselect_pawn()
 	pathfinder:reset()
 end
 
-function PlayState:move_pawn( pid, path )
+function PlayState:move_pawn( pid, path, action_cost )
 	p = self.pawn_list[pid]
 	if not p then
 		error( "missing pawn: " .. pid )
+	elseif p.actions < action_cost then
+		error( "not enough actions" )
 	else
 		x, y = grid.unhash(path[#path]) -- end of the path
 		self.current_map:move_pawn( p.x, p.y, x, y )
 		p.x = x
 		p.y = y
+		p.actions = p.actions - action_cost
+
+		if p.actions == 0 then
+			self:unselect_pawn()
+		elseif p.actions == 2 then
+			-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+			pathfinder:build_move_radius( self.current_map, p.x, p.y, 5005000 )
+		elseif p.actions == 1 then
+			pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
+		end
 
 		-- self.input_mode = "animating"
 		-- self.animation_path =

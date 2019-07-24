@@ -97,9 +97,10 @@ function pathfinder:build_move_radius( map, origin_x, origin_y, start_energy )
 end
 
 function pathfinder:path_to( target_x, target_y )
-	if not self.energies[ hash( target_x, target_y ) ] then
+	local energy = self.energies[ hash( target_x, target_y ) ]
+	if not energy then
 		-- can't get there
-		return nil
+		return nil, nil
 	else
 		local h = hash( target_x, target_y )
 		path = {}
@@ -114,7 +115,15 @@ function pathfinder:path_to( target_x, target_y )
 		end
 
 		mymath.reverse_array( path )
-		return path
+
+		local cost = 0
+		if self.start_energy >= 1000000 and energy < 1000 then
+			cost = 2
+		elseif (self.start_energy >= 1000000 and energy < 1000000) or (self.start_energy >= 1000 and energy < 1000) then
+			cost = 1
+		end
+
+		return path, cost
 	end
 end
 

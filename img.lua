@@ -143,16 +143,16 @@ function img.update_tileset_batch(map)
 		for x=0, img.view_tilewidth do
 			for y=0, img.view_tileheight do
 				if map:in_bounds(x + corner_x, y + corner_y) then
-					tile_name, tile_color = img.edge_tile(map:get_edge(x + corner_x, y + corner_y, "n"))
-					if tile_name then
-						img.tileset_batch:setColor(tile_color)
-						img.tileset_batch:add(img.tile[tile_name], x * TILE_SIZE, y * TILE_SIZE - 2)
+					edge_tile = img.edge_tile[map:get_edge(x + corner_x, y + corner_y, "n")]
+					if edge_tile then
+						img.tileset_batch:setColor(edge_tile[2])
+						img.tileset_batch:add(img.tile[edge_tile[1]], x * TILE_SIZE, y * TILE_SIZE - 2)
 					end
 				elseif map:in_bounds(x + corner_x, y + corner_y - 1) then -- southern edge
-					tile_name, tile_color = img.edge_tile(map:get_edge(x + corner_x, y + corner_y - 1, "s"))
-					if tile_name then
-						img.tileset_batch:setColor(tile_color)
-						img.tileset_batch:add(img.tile[tile_name], x * TILE_SIZE, y * TILE_SIZE - 2)
+					edge_tile = img.edge_tile[map:get_edge(x + corner_x, y + corner_y - 1, "s")]
+					if edge_tile then
+						img.tileset_batch:setColor(edge_tile[2])
+						img.tileset_batch:add(img.tile[edge_tile[1]], x * TILE_SIZE, y * TILE_SIZE - 2)
 					end
 				end
 			end
@@ -160,16 +160,16 @@ function img.update_tileset_batch(map)
 		for x=0, img.view_tilewidth do
 			for y=0, img.view_tileheight do
 				if map:in_bounds(x + corner_x, y + corner_y) then
-					tile_name, tile_color = img.edge_tile(map:get_edge(x + corner_x, y + corner_y, "w"))
-					if tile_name then
-						img.tileset_batch:setColor(tile_color)
-						img.tileset_batch:add(img.tile[tile_name], x * TILE_SIZE + 2, y * TILE_SIZE, PI_2)
+					edge_tile = img.edge_tile[map:get_edge(x + corner_x, y + corner_y, "w")]
+					if edge_tile then
+						img.tileset_batch:setColor(edge_tile[2])
+						img.tileset_batch:add(img.tile[edge_tile[1]], x * TILE_SIZE + 2, y * TILE_SIZE, PI_2)
 					end
 				elseif map:in_bounds(x + corner_x - 1, y + corner_y) then -- eastern edge
-					tile_name, tile_color = img.edge_tile(map:get_edge(x + corner_x - 1, y + corner_y, "e"))
-					if tile_name then
-						img.tileset_batch:setColor(tile_color)
-						img.tileset_batch:add(img.tile[tile_name], x * TILE_SIZE + 2, y * TILE_SIZE, PI_2)
+					edge_tile = img.edge_tile[map:get_edge(x + corner_x - 1, y + corner_y, "e")]
+					if edge_tile then
+						img.tileset_batch:setColor(edge_tile[2])
+						img.tileset_batch:add(img.tile[edge_tile[1]], x * TILE_SIZE + 2, y * TILE_SIZE, PI_2)
 					end
 				end
 			end
@@ -179,10 +179,10 @@ function img.update_tileset_batch(map)
 		for x=0, img.view_tilewidth+1 do
 			for y=0, img.view_tileheight+1 do
 				if x + corner_x >= 1 and x + corner_x <= map.width + 1 and y + corner_y >= 1 and y + corner_y <= map.height + 1 then
-					tile_name, tile_color = img.cap_tile(map:get_nw_cap(x + corner_x, y + corner_y))
-					if tile_name then
-						img.tileset_batch:setColor(tile_color)
-						img.tileset_batch:add(img.tile[tile_name], (x - 0.5) * TILE_SIZE, (y - 0.5) * TILE_SIZE)
+					cap_tile = img.cap_tile[map:get_nw_cap(x + corner_x, y + corner_y)]
+					if cap_tile then
+						img.tileset_batch:setColor(cap_tile[2])
+						img.tileset_batch:add(img.tile[cap_tile[1]], (x - 0.5) * TILE_SIZE, (y - 0.5) * TILE_SIZE)
 					end
 				end
 			end
@@ -217,29 +217,19 @@ end
 
 img.block_tile = {}
 
-img.block_tile[1] = { "block", color.grey01 }
-img.block_tile[2] = { "block", color.grey02 }
-img.block_tile[3] = { "block", color.grey03 }
+img.block_tile[ 1] = { "block", color.grey01 }
+img.block_tile[ 2] = { "block", color.grey02 }
+img.block_tile[ 3] = { "block", color.grey03 }
 img.block_tile[99] = { "block", color.white }
 
-function img.edge_tile(edge)
-	if edge == 99 then
-		return "edge_thick", color.white
-	elseif edge == 3 then
-		return "edge_dotted", color.yellow
-	else
-		return nil, nil
-	end
-end
+img.edge_tile = {}
 
-function img.cap_tile(edge)
-	if edge == 99 then
-		return "cap_thick", color.white
-	elseif edge == 3 then
-		return "cap_dotted", color.yellow
-	else
-		return nil, nil
-	end
-end
+img.edge_tile[ 3] = { "edge_dotted", color.yellow }
+img.edge_tile[99] = { "edge_thick", color.white }
+
+img.cap_tile = {}
+
+img.cap_tile[ 3] = { "cap_dotted", color.yellow }
+img.cap_tile[99] = { "cap_thick", color.white }
 
 return img
