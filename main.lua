@@ -7,16 +7,16 @@ function love.load()
 	gui_frame = 0
 
 	window_w, window_h = 800, 600
-	love.graphics.setBackgroundColor(color.rouge)
+	love.graphics.setBackgroundColor( color.rouge )
 
 	controller = input.setup_controller()
-	love.mouse.setVisible(false)
-	love.mouse.setGrabbed(true)
+	love.mouse.setVisible( false )
+	love.mouse.setGrabbed( true )
 	mouse_sx, mouse_sy = 0, 0
 
 	img.setup()
-	love.graphics.setFont(font)
-	love.graphics.setLineWidth(1)
+	love.graphics.setFont( font )
+	love.graphics.setLineWidth( 1 )
 
 	-- world = tiny.world(
 	-- 	PlayerControlSystem,
@@ -35,14 +35,14 @@ function love.load()
 	end
 end
 
-function love.update(dt)
-	gamestate:update(dt)
+function love.update( dt )
+	gamestate:update( dt )
 end
 
 function love.draw()
 	gamestate:draw()
 end
 
-function love.focus(f)
-	gamestate:focus(f)
+function love.focus( f )
+	gamestate:focus( f )
 end

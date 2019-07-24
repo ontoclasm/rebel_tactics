@@ -1,11 +1,11 @@
-local Map = class("Map")
+local Map = class( "Map" )
 
 local MAP_HASH = 512
-local EDGE_ROW_HASH_OFFSET = (MAP_HASH * 2) + 1
+local EDGE_ROW_HASH_OFFSET = ( MAP_HASH * 2 ) + 1
 
-function Map:init(width, height)
-	if (not width) or width <= 0 or (not height) or height <= 0 then
-		error("bad map bounds: " .. width .. ", " .. height)
+function Map:init( width, height )
+	if ( not width ) or width <= 0 or ( not height ) or height <= 0 then
+		error( "bad map bounds: " .. width .. ", " .. height )
 	end
 	self.width, self.height = width, height
 	self.blocks = {}
@@ -13,119 +13,138 @@ function Map:init(width, height)
 	self.pawns = {}
 end
 
-function Map:in_bounds(x, y)
+function Map:in_bounds( x, y )
 	return x >= 1 and x <= self.width and y >= 1 and y <= self.height
 end
 
 -- the block at (x, y) is stored at [x + (y - 1) * width]
-function Map:set_block(x, y, enum)
-	if not self:in_bounds(x, y) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:set_block( x, y, enum )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
-		self.blocks[x + (y - 1) * MAP_HASH] = enum
+		self.blocks[ x + (y - 1) * MAP_HASH ] = enum
 	end
 end
 
-function Map:get_block(x, y)
-	if not self:in_bounds(x, y) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:get_block( x, y )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
-		return self.blocks[x + (y - 1) * MAP_HASH]
+		return self.blocks[ x + (y - 1) * MAP_HASH ]
 	end
 end
 
-function Map:set_edge(x, y, side, enum)
-	if not self:in_bounds(x, y) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:set_edge( x, y, side, enum )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
 		if side == "n" then
-			self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET] = enum
+			self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET ] = enum
 		elseif side == "w" then
-			self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH] = enum
+			self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ] = enum
 		elseif side == "s" then
-			self.edges[x + y * EDGE_ROW_HASH_OFFSET] = enum
+			self.edges[ x + y * EDGE_ROW_HASH_OFFSET ] = enum
 		elseif side == "e" then
-			self.edges[(x + 1) + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH] = enum
+			self.edges[ (x + 1) + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ] = enum
 		else
-			error("bad edge: " .. side)
+			error( "bad edge: " .. side )
 		end
 	end
 end
 
-function Map:get_edge(x, y, side)
-	if not self:in_bounds(x, y) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:get_edge( x, y, side )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
 		if side == "n" then
-			return self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET]
+			return self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET ]
 		elseif side == "w" then
-			return self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
+			return self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
 		elseif side == "s" then
-			return self.edges[x + y * EDGE_ROW_HASH_OFFSET]
+			return self.edges[ x + y * EDGE_ROW_HASH_OFFSET ]
 		elseif side == "e" then
-			return self.edges[(x + 1) + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
+			return self.edges[ (x + 1) + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
 		else
-			error("bad edge: " .. side)
+			error( "bad edge: " .. side )
 		end
 	end
 end
 
-function Map:get_nw_cap(x, y)
-	if not (x >= 1 and x <= self.width + 1 and y >= 1 and y <= self.height + 1) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:get_nw_cap( x, y )
+	if not ( x >= 1 and x <= self.width + 1 and y >= 1 and y <= self.height + 1 ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
-		local cap = 99
+		local cap = 9999
 
-		local edge = self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET]
+		local edge = self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET ]
 		if edge then
-			cap = math.min(cap, edge)
+			cap = math.min( cap, edge )
 		end
 
-		edge = self.edges[x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
+		edge = self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
 		if edge then
-			cap = math.min(cap, edge)
+			cap = math.min( cap, edge )
 		end
 
-		edge = self.edges[(x - 1) + (y - 1) * EDGE_ROW_HASH_OFFSET]
+		edge = self.edges[ (x - 1) + (y - 1) * EDGE_ROW_HASH_OFFSET ]
 		if edge then
-			cap = math.min(cap, edge)
+			cap = math.min( cap, edge )
 		end
 
-		edge = self.edges[x + (y - 2) * EDGE_ROW_HASH_OFFSET + MAP_HASH]
+		edge = self.edges[ x + (y - 2) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
 		if edge then
-			cap = math.min(cap, edge)
+			cap = math.min( cap, edge )
 		end
 
 		return cap
 	end
 end
 
-function Map:set_pawn(x, y, pawn_id)
-	if not self:in_bounds(x, y) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:set_pawn( x, y, pawn_id )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
-		self.pawns[x + (y - 1) * MAP_HASH] = pawn_id
+		self.pawns[ x + (y - 1) * MAP_HASH ] = pawn_id
 	end
 end
 
-function Map:get_pawn(x, y)
-	if not self:in_bounds(x, y) then
-		error("out of bounds: " .. x .. ", " .. y)
+function Map:get_pawn( x, y )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
 	else
-		return self.pawns[x + (y - 1) * MAP_HASH]
+		return self.pawns[ x + (y - 1) * MAP_HASH ]
+	end
+end
+
+function Map:delete_pawn( x, y )
+	if not self:in_bounds( x, y ) then
+		error( "out of bounds: " .. x .. ", " .. y )
+	else
+		local pid = self.pawns[ x + (y - 1) * MAP_HASH ]
+		self.pawns[ x + (y - 1) * MAP_HASH ] = nil
+		return pid
+	end
+end
+
+function Map:move_pawn( from_x, from_y, to_x, to_y )
+	local pid = self:delete_pawn( from_x, from_y )
+	if not pid then
+		error( "missing pawn at " .. from_x .. ", " .. from_y )
+	else
+		self:set_pawn( to_x, to_y, pid )
 	end
 end
 
 function Map:find_random_floor()
 	local x, y
 	for tries = 1, 1000 do
-		x = love.math.random(1, self.width)
-		y = love.math.random(1, self.height)
-		if self:get_block(x, y) == 1 then
+		x = love.math.random( 1, self.width )
+		y = love.math.random( 1, self.height )
+		if self:get_block( x, y ) == 1 then
 			return x, y
 		end
 	end
-	error("couldn't find floor")
+	error( "couldn't find floor" )
 end
 
 function Map:move_cost( from_x, from_y, dx, dy )
@@ -150,7 +169,8 @@ function Map:terrain_move_cost( from_x, from_y, dx, dy )
 			if math.max( self:terrain_move_cost( from_x, from_y, 1,0 ),
 						 self:terrain_move_cost( from_x+1, from_y, 0,1 ),
 						 self:terrain_move_cost( from_x, from_y, 0,1 ),
-						 self:terrain_move_cost( from_x, from_y+1, 1,0 ) ) == 1 then
+						 self:terrain_move_cost( from_x, from_y+1, 1,0 ),
+						 diagonal_block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
 				return 1
 			else
 				return 99
@@ -164,7 +184,8 @@ function Map:terrain_move_cost( from_x, from_y, dx, dy )
 			if math.max( self:terrain_move_cost( from_x, from_y, 1,0 ),
 						 self:terrain_move_cost( from_x+1, from_y, 0,-1 ),
 						 self:terrain_move_cost( from_x, from_y, 0,-1 ),
-						 self:terrain_move_cost( from_x, from_y-1, 1,0 ) ) == 1 then
+						 self:terrain_move_cost( from_x, from_y-1, 1,0 ),
+						 diagonal_block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
 				return 1
 			else
 				return 99
@@ -189,7 +210,8 @@ function Map:terrain_move_cost( from_x, from_y, dx, dy )
 			if math.max( self:terrain_move_cost( from_x, from_y, -1,0 ),
 						 self:terrain_move_cost( from_x-1, from_y, 0,1 ),
 						 self:terrain_move_cost( from_x, from_y, 0,1 ),
-						 self:terrain_move_cost( from_x, from_y+1, -1,0 ) ) == 1 then
+						 self:terrain_move_cost( from_x, from_y+1, -1,0 ),
+						 diagonal_block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
 				return 1
 			else
 				return 99
@@ -203,7 +225,8 @@ function Map:terrain_move_cost( from_x, from_y, dx, dy )
 			if math.max( self:terrain_move_cost( from_x, from_y, -1,0 ),
 						 self:terrain_move_cost( from_x-1, from_y, 0,-1 ),
 						 self:terrain_move_cost( from_x, from_y, 0,-1 ),
-						 self:terrain_move_cost( from_x, from_y-1, -1,0 ) ) == 1 then
+						 self:terrain_move_cost( from_x, from_y-1, -1,0 ),
+						 diagonal_block_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
 				return 1
 			else
 				return 99
@@ -213,16 +236,38 @@ function Map:terrain_move_cost( from_x, from_y, dx, dy )
 end
 
 function block_move_cost( from, to )
-	if from == 2 or to == 2 then
-		return 99
-	else
+	if from == 1 then
+		if to == 1 then
+			return 1
+		elseif to == 2 then
+			return 10
+		end
+	elseif from == 2 then
+		if to == 1 or to == 2 then
+			return 1
+		elseif to == 3 then
+			return 10
+		end
+	elseif from == 3 then
+		if to == 3 or to == 2 then
+			return 1
+		end
+	end
+
+	return 99
+end
+
+function diagonal_block_move_cost( from, to )
+	if ( to == 1 and from == 1 ) or ( to == 2 and from == 2 ) or ( to == 3 and from == 3 ) then
 		return 1
 	end
+
+	return 99
 end
 
 function edge_move_cost( edge )
 	if edge then
-		if edge == 2 then
+		if edge == 99 then
 			return 99
 		else
 			return 10
@@ -236,35 +281,47 @@ end
 function Map:fill_debug()
 	for x = 1, self.width do
 		for y = 1, self.height do
-			if mymath.one_chance_in(8) then
+			local roll = love.math.random( 1, 100 )
+			if roll > 90 then
+				self:set_block(x, y, 99)
+			elseif roll > 80 then
+				self:set_block(x, y, 3)
+			elseif roll > 50 then
 				self:set_block(x, y, 2)
 			else
 				self:set_block(x, y, 1)
 			end
+		end
+	end
 
-			if mymath.one_chance_in(16) then
-				self:set_edge(x, y, "n", 3)
+	for x = 1, self.width do
+		for y = 1, self.height do
+			if y == 1 then
+				self:set_edge(x, y, "n", 99)
+			else
+				local c = (self:get_block(x,y) == 99 and 1 or 0) + (self:get_block(x,y-1) == 99 and 1 or 0)
+				if c == 1 or (c == 0 and mymath.one_chance_in(8)) then
+					self:set_edge(x, y, "n", 99)
+				elseif c == 0 and mymath.one_chance_in(8) then
+					self:set_edge(x, y, "n", 3)
+				end
 			end
-			if mymath.one_chance_in(16) then
-				self:set_edge(x, y, "w", 3)
+			if y == self.height then
+				self:set_edge(x, y, "s", 99)
 			end
-			if mymath.one_chance_in(16) then
-				self:set_edge(x, y, "s", 3)
+
+			if x == 1 then
+				self:set_edge(x, y, "w", 99)
+			else
+				local c = (self:get_block(x,y) == 99 and 1 or 0) + (self:get_block(x-1,y) == 99 and 1 or 0)
+				if c == 1 or (c == 0 and mymath.one_chance_in(8)) then
+					self:set_edge(x, y, "w", 99)
+				elseif c == 0 and mymath.one_chance_in(8) then
+					self:set_edge(x, y, "w", 3)
+				end
 			end
-			if mymath.one_chance_in(16) then
-				self:set_edge(x, y, "e", 3)
-			end
-			if y == 1 or mymath.one_chance_in(32) then
-				self:set_edge(x, y, "n", 2)
-			end
-			if x == 1 or mymath.one_chance_in(32) then
-				self:set_edge(x, y, "w", 2)
-			end
-			if y == self.height or mymath.one_chance_in(32) then
-				self:set_edge(x, y, "s", 2)
-			end
-			if x == self.width or mymath.one_chance_in(32) then
-				self:set_edge(x, y, "e", 2)
+			if x == self.width then
+				self:set_edge(x, y, "e", 99)
 			end
 		end
 	end

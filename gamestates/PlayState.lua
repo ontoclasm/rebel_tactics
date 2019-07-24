@@ -1,4 +1,4 @@
-local PlayState = class("PlayState")
+local PlayState = class( "PlayState" )
 
 PlayState.name = "Play Screen"
 
@@ -13,67 +13,78 @@ function PlayState:enter()
 	for pawn_id = 1, 8 do
 		-- place a pawn
 		local spawn_x, spawn_y = self.current_map:find_random_floor()
-		table.insert(self.pawn_list, {id = pawn_id, color = {1, pawn_id/8, 0}, x = spawn_x, y = spawn_y})
-		self.current_map:set_pawn(spawn_x, spawn_y, pawn_id)
+		table.insert( self.pawn_list, {id = pawn_id, color = {1, pawn_id/8, 0}, x = spawn_x, y = spawn_y} )
+		self.current_map:set_pawn( spawn_x, spawn_y, pawn_id )
 	end
 
 	self.selected_pawn = nil
+	self.input_mode = "open"
 
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
 
-	camera.set_location(12 * 24 + 12, 8 * 24 + 12)
+	camera.set_location( 12 * 24 + 12, 8 * 24 + 12 )
 
 	mouse_sx, mouse_sy = love.mouse.getPosition()
-	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
+	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point( mouse_sx, mouse_sy )
 	img.tileset_batch_is_dirty = true
 end
 
-function PlayState:update(dt)
+function PlayState:update( dt )
 	gui_frame = gui_frame + 1
 
 	-- handle input
 	controller:update()
 	mouse_sx, mouse_sy = love.mouse.getPosition()
-	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point(mouse_sx, mouse_sy)
+	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point( mouse_sx, mouse_sy )
 
 	-- updates even when paused?
 	camera.update()
 
 	if not self.paused then
-		if controller:pressed('menu') then
+		if controller:pressed( 'menu' ) then
 			self:pause()
 			return
 		end
 
 		self.game_frame = self.game_frame + 1
 
-		if controller:pressed('r_left') then
-			camera.shift_target(-24, 0)
+		if controller:pressed( 'r_left' ) then
+			camera.shift_target( -24, 0 )
 		end
-		if controller:pressed('r_right') then
-			camera.shift_target(24, 0)
+		if controller:pressed( 'r_right' ) then
+			camera.shift_target( 24, 0 )
 		end
-		if controller:pressed('r_up') then
-			camera.shift_target(0, -24)
+		if controller:pressed( 'r_up' ) then
+			camera.shift_target( 0, -24 )
 		end
-		if controller:pressed('r_down') then
-			camera.shift_target(0, 24)
-		end
-		if controller:pressed('r1') then
-			local pid = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
-			if not pid then
-				self.selected_pawn = nil
-				pathfinder:reset()
-			elseif pid ~= self.selected_pawn then
-				self.selected_pawn = self.current_map:get_pawn(self.mouse_x, self.mouse_y)
-				self.selected_start_frame = gui_frame
-				pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 6006 )
-				-- pathfinder:build_move_radius( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 6006 )
-			end
+		if controller:pressed( 'r_down' ) then
+			camera.shift_target( 0, 24 )
 		end
 
-		if pathfinder.debug_running and (gui_frame - self.selected_start_frame) % 5 == 0 then
+		if self.input_mode == "open" then
+			if controller:pressed( 'r1' ) then
+				local pid = self.current_map:get_pawn( self.mouse_x, self.mouse_y )
+				if not pid then
+					self:unselect_pawn()
+				elseif pid ~= self.selected_pawn then
+					self:select_pawn( pid )
+				end
+			end
+			if controller:pressed( 'r2' ) and self.selected_pawn then
+				-- move selected pawn to mouse point
+				local path = pathfinder:path_to( self.mouse_x, self.mouse_y )
+				if path and #path > 1 then
+					self:move_pawn( self.selected_pawn, path )
+					self:unselect_pawn()
+				end
+			end
+		elseif self.input_mode == "animating" then
+			-- run current animation
+
+		end
+
+		if pathfinder.debug_running and ( gui_frame - self.selected_start_frame ) % 5 == 0 then
 			pathfinder:build_move_radius_debug_step( self.current_map )
 		end
 
@@ -94,67 +105,67 @@ function PlayState:update(dt)
 		-- 	break
 		-- end
 	else
-		if controller:pressed('menu') then
+		if controller:pressed( 'menu' ) then
 			self:unpause()
 		end
-		if controller:pressed('view') then
-			gamestate_manager.switch_to("Splash")
+		if controller:pressed( 'view' ) then
+			gamestate_manager.switch_to( "Splash" )
 		end
 	end
 end
 
 function PlayState:draw()
 	if self.paused then
-		love.graphics.setShader(shader_desaturate)
+		love.graphics.setShader( shader_desaturate )
 	end
 
-	-- love.graphics.setCanvas(game_canvas)
-	love.graphics.clear(color.bg)
+	-- love.graphics.setCanvas( game_canvas )
+	love.graphics.clear( color.bg )
 
-	img.render(self)
+	img.render( self )
 
 	-- gui
 
 	-- debug msg
-	love.graphics.setColor(color.ltblue)
-	love.graphics.print("Time: "..string.format("%.0f", self.game_frame / 60), 2, 2)
-	love.graphics.setColor(color.white)
-	if self.current_map:in_bounds(self.mouse_x, self.mouse_y) then
-		love.graphics.print("b: "..(self.current_map:get_block(self.mouse_x, self.mouse_y) or "x")..
+	love.graphics.setColor( color.ltblue )
+	love.graphics.print( "Time: "..string.format("%.0f", self.game_frame / 60), 2, 2 )
+	love.graphics.setColor( color.white )
+	if self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
+		love.graphics.print( "b: "..(self.current_map:get_block(self.mouse_x, self.mouse_y) or "x")..
 			", n: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "n") or "x")..
 			", w: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "w") or "x")..
 			", s: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "s") or "x")..
 			", e: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "e") or "x")..
-			", pawn: "..(self.current_map:get_pawn(self.mouse_x, self.mouse_y, "e") or "x"), 2, window_h - 58)
+			", pawn: "..(self.current_map:get_pawn(self.mouse_x, self.mouse_y, "e") or "x"), 2, window_h - 58 )
 	end
-	love.graphics.print("Cursor: "..self.mouse_x..", "..self.mouse_y, 2, window_h - 38)
-	love.graphics.print("FPS: "..love.timer.getFPS(), 2, window_h - 18)
-	love.graphics.setColor(color.white)
+	love.graphics.print( "Cursor: "..self.mouse_x..", "..self.mouse_y, 2, window_h - 38 )
+	love.graphics.print( "FPS: "..love.timer.getFPS(), 2, window_h - 18 )
+	love.graphics.setColor( color.white )
 	love.graphics.setShader()
 	if self.paused then
 		-- draw pause menu
-		love.graphics.setColor(color.rouge)
-		love.graphics.circle("fill", window_w/2, window_h/2, 50)
-		love.graphics.setColor(color.white)
-		love.graphics.printf("Press Q to quit", math.floor(window_w/2 - 100), math.floor(window_h/2 - font:getHeight()/2), 200, "center")
-		love.graphics.setColor(color.white)
+		love.graphics.setColor( color.rouge )
+		love.graphics.circle( "fill", window_w/2, window_h/2, 50 )
+		love.graphics.setColor( color.white )
+		love.graphics.printf( "Press Q to quit", math.floor(window_w/2 - 100), math.floor(window_h/2 - font:getHeight()/2), 200, "center" )
+		love.graphics.setColor( color.white )
 	end
 
-	love.graphics.draw(img.cursor, mouse_sx - 5, mouse_sy - 5)
+	love.graphics.draw( img.cursor, mouse_sx - 5, mouse_sy - 5 )
 	-- love.graphics.setCanvas()
 	-- love.graphics.draw(game_canvas)
 end
 
-function PlayState:focus(f)
+function PlayState:focus( f )
 	if f then
-		love.mouse.setVisible(false)
-		love.mouse.setGrabbed(true)
+		love.mouse.setVisible( false )
+		love.mouse.setGrabbed( true )
 	else
 		if not self.paused then
 			self:pause()
 		end
-		love.mouse.setVisible(true)
-		love.mouse.setGrabbed(false)
+		love.mouse.setVisible( true )
+		love.mouse.setGrabbed( false )
 	end
 end
 
@@ -163,6 +174,33 @@ function PlayState:exit()
 end
 
 -- -- -- --
+
+function PlayState:select_pawn( pid )
+	self.selected_pawn = pid
+	self.selected_start_frame = gui_frame
+	-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+	pathfinder:build_move_radius( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+end
+
+function PlayState:unselect_pawn()
+	self.selected_pawn = nil
+	pathfinder:reset()
+end
+
+function PlayState:move_pawn( pid, path )
+	p = self.pawn_list[pid]
+	if not p then
+		error( "missing pawn: " .. pid )
+	else
+		x, y = grid.unhash(path[#path]) -- end of the path
+		self.current_map:move_pawn( p.x, p.y, x, y )
+		p.x = x
+		p.y = y
+
+		-- self.input_mode = "animating"
+		-- self.animation_path =
+	end
+end
 
 function PlayState:pause()
 	self.paused = true

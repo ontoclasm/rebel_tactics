@@ -130,10 +130,10 @@ function img.update_tileset_batch(map)
 		for x=0, img.view_tilewidth do
 			for y=0, img.view_tileheight do
 				if map:in_bounds(x + corner_x, y + corner_y) then
-					tile_name, tile_color = img.block_tile(map:get_block(x + corner_x, y + corner_y))
-					if tile_name then
-						img.tileset_batch:setColor(tile_color)
-						img.tileset_batch:add(img.tile[tile_name], x * TILE_SIZE, y * TILE_SIZE)
+					block_tile = img.block_tile[map:get_block(x + corner_x, y + corner_y)]
+					if block_tile then
+						img.tileset_batch:setColor(block_tile[2])
+						img.tileset_batch:add(img.tile[block_tile[1]], x * TILE_SIZE, y * TILE_SIZE)
 					end
 				end
 			end
@@ -197,34 +197,6 @@ function img.update_tileset_batch(map)
 	end
 end
 
-function img.block_tile(block)
-	if block == 2 then
-		return "block", color.ltgrey
-	else
-		return "block", color.blue
-	end
-end
-
-function img.edge_tile(edge)
-	if edge == 2 then
-		return "edge_thick", color.white
-	elseif edge == 3 then
-		return "edge_dotted", color.yellow
-	else
-		return nil, nil
-	end
-end
-
-function img.cap_tile(edge)
-	if edge == 2 then
-		return "cap_thick", color.white
-	elseif edge == 3 then
-		return "cap_dotted", color.yellow
-	else
-		return nil, nil
-	end
-end
-
 local px, py
 function img.draw_to_grid(tilename, x, y)
 	px, py = camera.screen_point_from_grid_point(x, y)
@@ -238,6 +210,35 @@ function img.set_color_by_energy( en )
 		love.graphics.setColor( color.ltblue )
 	else
 		love.graphics.setColor( color.orange )
+	end
+end
+
+--
+
+img.block_tile = {}
+
+img.block_tile[1] = { "block", color.grey01 }
+img.block_tile[2] = { "block", color.grey02 }
+img.block_tile[3] = { "block", color.grey03 }
+img.block_tile[99] = { "block", color.white }
+
+function img.edge_tile(edge)
+	if edge == 99 then
+		return "edge_thick", color.white
+	elseif edge == 3 then
+		return "edge_dotted", color.yellow
+	else
+		return nil, nil
+	end
+end
+
+function img.cap_tile(edge)
+	if edge == 99 then
+		return "cap_thick", color.white
+	elseif edge == 3 then
+		return "cap_dotted", color.yellow
+	else
+		return nil, nil
 	end
 end
 

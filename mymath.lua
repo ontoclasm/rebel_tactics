@@ -81,4 +81,8 @@ function mymath.reverse_array (arr)
 	end
 end
 
+function mymath.xor( a, b )
+	return (a and not b) or (b and not a)
+end
+
 return mymath

@@ -97,7 +97,7 @@ function pathfinder:build_move_radius( map, origin_x, origin_y, start_energy )
 end
 
 function pathfinder:path_to( target_x, target_y )
-	if not self.came_from[ hash( target_x, target_y ) ] then
+	if not self.energies[ hash( target_x, target_y ) ] then
 		-- can't get there
 		return nil
 	else
