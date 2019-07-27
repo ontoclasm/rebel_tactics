@@ -7,7 +7,7 @@ function img.render(state)
 	love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 
 	-- draw mouse cursor
-	if state.current_map:in_bounds(state.mouse_x, state.mouse_y) then
+	if state.current_map:in_bounds(state.mouse_x, state.mouse_y) and state.current_map:get_block(state.mouse_x, state.mouse_y) ~= 99 then
 		love.graphics.setColor(color.rouge)
 		img.draw_to_grid("cursor_mouse", state.mouse_x, state.mouse_y)
 
@@ -17,17 +17,6 @@ function img.render(state)
 
 	-- pathfinder debug
 	if pathfinder.on then
-		local en
-		for x = 1, state.current_map.width do
-			for y = 1, state.current_map.height do
-				en = pathfinder.energies[ grid.hash( x, y ) ]
-				if en then
-					img.set_color_by_energy( en )
-					img.draw_to_grid("dot", x, y)
-				end
-			end
-		end
-
 		if pathfinder.debug_last_h then
 			for h, _ in pairs( pathfinder.fringes ) do
 				x, y = grid.unhash( h )
@@ -58,6 +47,17 @@ function img.render(state)
 					a, b = camera.screen_point_from_grid_point( a, b )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
+				end
+			end
+		end
+
+		local en
+		for x = 1, state.current_map.width do
+			for y = 1, state.current_map.height do
+				en = pathfinder.energies[ grid.hash( x, y ) ]
+				if en then
+					img.set_color_by_energy( en )
+					img.draw_to_grid("dot", x, y)
 				end
 			end
 		end
@@ -95,12 +95,14 @@ function img.setup()
 
 	img.nq("block",					 0,	 0)
 	img.nq("edge_thick",			 1,	 0)
-	img.nq("edge_dotted",			 2,	 0)
-	img.nq("pawn",					 3,	 0)
-	img.nq("cursor_mouse",			 4,	 0)
-	img.nq("dot",					 5,	 0)
+	img.nq("edge_thin",				 2,	 0)
+	img.nq("edge_dotted",			 3,	 0)
 	img.nq("cap_thick",				 1,	 1)
-	img.nq("cap_dotted",			 2,	 1)
+	img.nq("cap_thin",				 2,	 1)
+	img.nq("cap_dotted",			 3,	 1)
+	img.nq("pawn",					 0,	 2)
+	img.nq("cursor_mouse",			 0,	 3)
+	img.nq("dot",					 1,	 3)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
@@ -220,16 +222,16 @@ img.block_tile = {}
 img.block_tile[ 1] = { "block", color.grey01 }
 img.block_tile[ 2] = { "block", color.grey02 }
 img.block_tile[ 3] = { "block", color.grey03 }
-img.block_tile[99] = { "block", color.white }
+img.block_tile[99] = { "block", color.bg }
 
 img.edge_tile = {}
 
-img.edge_tile[ 3] = { "edge_dotted", color.yellow }
-img.edge_tile[99] = { "edge_thick", color.white }
+img.edge_tile[ 3] = { "edge_thin", color.brown }
+img.edge_tile[99] = { "edge_thick", color.grey06 }
 
 img.cap_tile = {}
 
-img.cap_tile[ 3] = { "cap_dotted", color.yellow }
-img.cap_tile[99] = { "cap_thick", color.white }
+img.cap_tile[ 3] = { "cap_thin", color.brown }
+img.cap_tile[99] = { "cap_thick", color.grey06 }
 
 return img

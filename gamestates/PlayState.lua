@@ -5,7 +5,7 @@ PlayState.name = "Play Screen"
 function PlayState:enter()
 	self.game_frame = 0
 
-	self.current_map = Map(24, 16)
+	self.current_map = Map(28, 18)
 	self.current_map:fill_debug()
 	pathfinder:reset()
 
@@ -82,9 +82,8 @@ function PlayState:update( dt )
 					self:move_pawn( self.selected_pawn, path, energy_cost )
 				end
 			end
-		elseif self.input_mode == "animating" then
-			-- run current animation
-
+		-- elseif self.input_mode == "animating" then
+		-- 	-- run current animation
 		end
 
 		if pathfinder.debug_running and ( gui_frame - self.selected_start_frame ) % 5 == 0 then

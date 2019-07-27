@@ -74,26 +74,26 @@ function Map:get_nw_cap( x, y )
 	if not ( x >= 1 and x <= self.width + 1 and y >= 1 and y <= self.height + 1 ) then
 		error( "out of bounds: " .. x .. ", " .. y )
 	else
-		local cap = 9999
+		local cap = -1
 
 		local edge = self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET ]
 		if edge then
-			cap = math.min( cap, edge )
+			cap = math.max( cap, edge )
 		end
 
 		edge = self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
 		if edge then
-			cap = math.min( cap, edge )
+			cap = math.max( cap, edge )
 		end
 
 		edge = self.edges[ (x - 1) + (y - 1) * EDGE_ROW_HASH_OFFSET ]
 		if edge then
-			cap = math.min( cap, edge )
+			cap = math.max( cap, edge )
 		end
 
 		edge = self.edges[ x + (y - 2) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
 		if edge then
-			cap = math.min( cap, edge )
+			cap = math.max( cap, edge )
 		end
 
 		return cap
@@ -136,11 +136,11 @@ function Map:move_pawn( from_x, from_y, to_x, to_y )
 end
 
 function Map:find_random_floor()
-	local x, y
+	local x, y, b
 	for tries = 1, 1000 do
 		x = love.math.random( 1, self.width )
 		y = love.math.random( 1, self.height )
-		if self:get_block( x, y ) == 1 then
+		if self:get_block( x, y ) >= 1 and self:get_block( x, y ) <= 3 then
 			return x, y
 		end
 	end
@@ -281,15 +281,67 @@ end
 function Map:fill_debug()
 	for x = 1, self.width do
 		for y = 1, self.height do
-			local roll = love.math.random( 1, 100 )
-			if roll > 90 then
+			self:set_block(x, y, 99)
+		end
+	end
+
+	for room = 1, love.math.random(4,6) do
+		local room_width, room_height = love.math.random(5,9), love.math.random(7,11)
+		local corner_x, corner_y = love.math.random(1, self.width - room_width), love.math.random(1, self.height - room_height)
+		for x = corner_x, corner_x + room_width do
+			for y = corner_y, corner_y + room_height do
+				local roll = love.math.random( 1, 100 )
+				if roll > 20 then
+					self:set_block(x, y, 1)
+				elseif roll > 5 then
+					self:set_block(x, y, 2)
+				else
+					self:set_block(x, y, 3)
+				end
+			end
+		end
+	end
+
+	for room = 1, love.math.random(3,5) do
+		local room_width, room_height = love.math.random(4,7), love.math.random(6,9)
+		local corner_x, corner_y = love.math.random(1, self.width - room_width), love.math.random(1, self.height - room_height)
+		for x = corner_x, corner_x + room_width do
+			for y = corner_y, corner_y + room_height do
+				local roll = love.math.random( 1, 100 )
+				if roll > 20 then
+					self:set_block(x, y, 2)
+				elseif roll > 10 then
+					self:set_block(x, y, 1)
+				else
+					self:set_block(x, y, 3)
+				end
+			end
+		end
+	end
+
+	for room = 1, love.math.random(2,4) do
+		local room_width, room_height = love.math.random(3,5), love.math.random(6,9)
+		local corner_x, corner_y = love.math.random(1, self.width - room_width), love.math.random(1, self.height - room_height)
+		for x = corner_x, corner_x + room_width do
+			for y = corner_y, corner_y + room_height do
+				local roll = love.math.random( 1, 100 )
+				if roll > 20 then
+					self:set_block(x, y, 3)
+				elseif roll > 5 then
+					self:set_block(x, y, 2)
+				else
+					self:set_block(x, y, 1)
+				end
+			end
+		end
+	end
+
+	for anti_room = 1, love.math.random(3,5) do
+		local room_width, room_height = love.math.random(1,3), love.math.random(2,4)
+		local corner_x, corner_y = love.math.random(1, self.width - room_width), love.math.random(1, self.height - room_height)
+		for x = corner_x, corner_x + room_width do
+			for y = corner_y, corner_y + room_height do
 				self:set_block(x, y, 99)
-			elseif roll > 80 then
-				self:set_block(x, y, 3)
-			elseif roll > 20 then
-				self:set_block(x, y, 2)
-			else
-				self:set_block(x, y, 1)
 			end
 		end
 	end
@@ -297,31 +349,39 @@ function Map:fill_debug()
 	for x = 1, self.width do
 		for y = 1, self.height do
 			if y == 1 then
-				self:set_edge(x, y, "n", 99)
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "n", 99)
+				end
 			else
 				local c = (self:get_block(x,y) == 99 and 1 or 0) + (self:get_block(x,y-1) == 99 and 1 or 0)
-				if c == 1 or (c == 0 and mymath.one_chance_in(8)) then
+				if c == 1 or (c == 0 and mymath.one_chance_in(16)) then
 					self:set_edge(x, y, "n", 99)
-				elseif c == 0 and mymath.one_chance_in(8) then
+				elseif c == 0 and mymath.one_chance_in(16) then
 					self:set_edge(x, y, "n", 3)
 				end
 			end
 			if y == self.height then
-				self:set_edge(x, y, "s", 99)
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "s", 99)
+				end
 			end
 
 			if x == 1 then
-				self:set_edge(x, y, "w", 99)
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "w", 99)
+				end
 			else
 				local c = (self:get_block(x,y) == 99 and 1 or 0) + (self:get_block(x-1,y) == 99 and 1 or 0)
-				if c == 1 or (c == 0 and mymath.one_chance_in(8)) then
+				if c == 1 or (c == 0 and mymath.one_chance_in(16)) then
 					self:set_edge(x, y, "w", 99)
-				elseif c == 0 and mymath.one_chance_in(8) then
+				elseif c == 0 and mymath.one_chance_in(16) then
 					self:set_edge(x, y, "w", 3)
 				end
 			end
 			if x == self.width then
-				self:set_edge(x, y, "e", 99)
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "e", 99)
+				end
 			end
 		end
 	end
