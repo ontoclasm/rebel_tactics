@@ -23,6 +23,7 @@ function PlayState:enter()
 
 	self.selected_pawn = nil
 	self.input_mode = "open"
+	self.animation_queue = Queue()
 
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
@@ -79,11 +80,44 @@ function PlayState:update( dt )
 				-- move selected pawn to mouse point
 				local path, energy_cost = pathfinder:path_to( self.mouse_x, self.mouse_y )
 				if path and #path > 1 then
-					self:move_pawn( self.selected_pawn, path, energy_cost )
+					self:order_move_pawn( self.selected_pawn, path, energy_cost )
 				end
 			end
-		-- elseif self.input_mode == "animating" then
-		-- 	-- run current animation
+		end
+
+		if self.current_animation then
+			-- currently only steps exist
+			if self.current_animation.t == 0 then
+				--start the animation
+				if self.current_map:get_pawn( self.current_animation.x1, self.current_animation.y1 ) ~= self.current_animation.pid then
+					error("pawn in wrong place??")
+				end
+
+				local p = self.pawn_list[self.current_animation.pid]
+				p.offset_x = TILE_SIZE * (self.current_animation.x1 - self.current_animation.x2)
+				p.offset_y = TILE_SIZE * (self.current_animation.y1 - self.current_animation.y2)
+				self.current_map:move_pawn( self.current_animation.x1, self.current_animation.y1, self.current_animation.x2, self.current_animation.y2 )
+				p.x, p.y = self.current_animation.x2, self.current_animation.y2
+
+				self.current_animation.t = self.current_animation.t + 6 * dt
+			elseif self.current_animation.t < 1 then
+				local p = self.pawn_list[self.current_animation.pid]
+				p.offset_x = mymath.abs_floor(TILE_SIZE * (self.current_animation.x1 - self.current_animation.x2) * (1 - self.current_animation.t))
+				p.offset_y = mymath.abs_floor(TILE_SIZE * (self.current_animation.y1 - self.current_animation.y2) * (1 - self.current_animation.t))
+
+				self.current_animation.t = self.current_animation.t + 6 * dt
+			else
+				-- anim finished
+				local p = self.pawn_list[self.current_animation.pid]
+				p.offset_x = 0
+				p.offset_y = 0
+
+				self.current_animation = nil
+			end
+		end
+
+		if (not self.current_animation) and (not self.animation_queue:is_empty()) then
+			self.current_animation = self.animation_queue:dequeue()
 		end
 
 		if pathfinder.debug_running and ( gui_frame - self.selected_start_frame ) % 5 == 0 then
@@ -202,30 +236,39 @@ function PlayState:unselect_pawn()
 	pathfinder:reset()
 end
 
-function PlayState:move_pawn( pid, path, action_cost )
+function PlayState:order_move_pawn( pid, path, action_cost )
 	p = self.pawn_list[pid]
 	if not p then
 		error( "missing pawn: " .. pid )
 	elseif p.actions < action_cost then
 		error( "not enough actions" )
 	else
-		x, y = grid.unhash(path[#path]) -- end of the path
-		self.current_map:move_pawn( p.x, p.y, x, y )
-		p.x = x
-		p.y = y
 		p.actions = p.actions - action_cost
 
-		if p.actions == 0 then
-			self:unselect_pawn()
-		elseif p.actions == 2 then
-			-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
-			pathfinder:build_move_radius( self.current_map, p.x, p.y, 5005000 )
-		elseif p.actions == 1 then
-			pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
+		for step = 1, #path - 1 do
+			x1, y1 = grid.unhash(path[step])
+			x2, y2 = grid.unhash(path[step+1])
+
+			-- step from x1y1 to x2y2
+			-- XXX check for reactions etc.
+			self.animation_queue:enqueue({ kind = "step", pid = pid, x1 = x1, y1 = y1, x2 = x2, y2 = y2, t = 0 })
 		end
 
-		-- self.input_mode = "animating"
-		-- self.animation_path =
+		-- x, y = grid.unhash(path[#path]) -- end of the path
+		-- self.current_map:move_pawn( p.x, p.y, x, y )
+		-- p.x = x
+		-- p.y = y
+
+		self:unselect_pawn()
+
+		-- if p.actions == 0 then
+		-- 	self:unselect_pawn()
+		-- elseif p.actions == 2 then
+		-- 	-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+		-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5005000 )
+		-- elseif p.actions == 1 then
+		-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
+		-- end
 	end
 end
 

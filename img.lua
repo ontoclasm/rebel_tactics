@@ -68,7 +68,7 @@ function img.render(state)
 		-- xxx cull off-screens?
 		love.graphics.setColor((p.id == state.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15))
 			or p.color)
-		img.draw_to_grid("pawn", p.x, p.y)
+		img.draw_to_grid("pawn", p.x, p.y, p.offset_x, p.offset_y)
 
 		-- if p.id == state.selected_pawn then
 		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15)))
@@ -200,8 +200,10 @@ function img.update_tileset_batch(map)
 end
 
 local px, py
-function img.draw_to_grid(tilename, x, y)
+function img.draw_to_grid(tilename, x, y, offset_x, offset_y)
 	px, py = camera.screen_point_from_grid_point(x, y)
+	px = px + (offset_x or 0)
+	py = py + (offset_y or 0)
 	love.graphics.draw(img.tileset, img.tile[tilename], px, py, 0, 1, 1, TILE_CENTER, TILE_CENTER)
 end
 

@@ -13,6 +13,7 @@ mymath = require "mymath"
 pathfinder = require "pathfinder"
 
 Map = require "Map"
+Queue = require "Queue"
 
 font = love.graphics.newImageFont("assets/img/font.png",
 		" abcdefghijklmnopqrstuvwxyz" ..
