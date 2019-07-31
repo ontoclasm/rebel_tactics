@@ -15,6 +15,14 @@ function img.render(state)
 		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_x, state.mouse_y))
 	end
 
+	-- draw FOV
+	local x, y
+	for hash,v in pairs( state.visible_tiles ) do
+		x, y = grid.unhash(hash)
+		img.set_color_by_dir(v)
+		img.draw_to_grid("cursor_mouse", x, y)
+	end
+
 	-- pathfinder debug
 	if pathfinder.on then
 		if pathfinder.debug_last_h then
@@ -214,6 +222,20 @@ function img.set_color_by_energy( en )
 		love.graphics.setColor( color.ltblue )
 	else
 		love.graphics.setColor( color.orange )
+	end
+end
+
+function img.set_color_by_dir( dir )
+	if dir == "s" then
+		love.graphics.setColor( color.green )
+	elseif dir == "n" then
+		love.graphics.setColor( color.ltblue )
+	elseif dir == "e" then
+		love.graphics.setColor( color.yellow )
+	elseif dir == "w" then
+		love.graphics.setColor( color.orange )
+	else
+		love.graphics.setColor( color.white )
 	end
 end
 

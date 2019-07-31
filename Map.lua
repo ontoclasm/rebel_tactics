@@ -147,6 +147,42 @@ function Map:find_random_floor()
 	error( "couldn't find floor" )
 end
 
+function Map:can_lean_south(x,y)
+	if not self:in_bounds(x,y) or not self:in_bounds(x,y+1) or self:get_block(x,y+1) == 99 then
+		return false
+	else
+		return (not self:get_edge( x, y, "s" ))
+			and ((self:get_edge( x, y, "w") and not self:get_edge( x, y+1, "w")) or (self:get_edge( x, y, "e") and not self:get_edge( x, y+1, "e")))
+	end
+end
+
+function Map:can_lean_north(x,y)
+	if not self:in_bounds(x,y) or not self:in_bounds(x,y-1) or self:get_block(x,y-1) == 99 then
+		return false
+	else
+		return (not self:get_edge( x, y, "n" ))
+			and ((self:get_edge( x, y, "w") and not self:get_edge( x, y-1, "w")) or (self:get_edge( x, y, "e") and not self:get_edge( x, y-1, "e")))
+	end
+end
+
+function Map:can_lean_west(x,y)
+	if not self:in_bounds(x,y) or not self:in_bounds(x-1,y) or self:get_block(x-1,y) == 99 then
+		return false
+	else
+		return (not self:get_edge( x, y, "w" ))
+			and ((self:get_edge( x, y, "n") and not self:get_edge( x-1, y, "n")) or (self:get_edge( x, y, "s") and not self:get_edge( x-1, y, "s")))
+	end
+end
+
+function Map:can_lean_east(x,y)
+	if not self:in_bounds(x,y) or not self:in_bounds(x+1,y) or self:get_block(x+1,y) == 99 then
+		return false
+	else
+		return (not self:get_edge( x, y, "e" ))
+			and ((self:get_edge( x, y, "n") and not self:get_edge( x+1, y, "n")) or (self:get_edge( x, y, "s") and not self:get_edge( x+1, y, "s")))
+	end
+end
+
 function Map:move_cost( from_x, from_y, dx, dy )
 	-- XXX rewrite
 	-- don't want to hop over walls diagonally, it looks weird
@@ -376,6 +412,61 @@ function Map:fill_debug()
 					self:set_edge(x, y, "w", 99)
 				elseif c == 0 and mymath.one_chance_in(16) then
 					self:set_edge(x, y, "w", 3)
+				end
+			end
+			if x == self.width then
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "e", 99)
+				end
+			end
+		end
+	end
+end
+
+function Map:fill_debug_empty()
+	for x = 1, self.width do
+		for y = 1, self.height do
+			self:set_block(x, y, 1)
+		end
+	end
+
+	for x = 6, 11 do
+		for y = 9, 11 do
+			self:set_block(x, y, 99)
+		end
+	end
+	for x = 13, 16 do
+		for y = 6, 11 do
+			self:set_block(x, y, 99)
+		end
+	end
+
+	for x = 1, self.width do
+		for y = 1, self.height do
+			if y == 1 then
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "n", 99)
+				end
+			else
+				local c = (self:get_block(x,y) == 99 and 1 or 0) + (self:get_block(x,y-1) == 99 and 1 or 0)
+				if c == 1 then
+					self:set_edge(x, y, "n", 99)
+				end
+			end
+			if y == self.height then
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "s", 99)
+				end
+			end
+
+			if x == 1 then
+				if self:get_block(x,y) ~= 99 then
+					self:set_edge(x, y, "w", 99)
+				end
+			else
+				local c = (self:get_block(x,y) == 99 and 1 or 0) + (self:get_block(x-1,y) == 99 and 1 or 0)
+				if c == 1 then
+					self:set_edge(x, y, "w", 99)
 				end
 			end
 			if x == self.width then

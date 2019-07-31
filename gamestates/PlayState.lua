@@ -32,6 +32,9 @@ function PlayState:enter()
 
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point( mouse_sx, mouse_sy )
+	self.mouse_fov_is_dirty = true
+	self.visible_tiles = {}
+
 	img.tileset_batch_is_dirty = true
 end
 
@@ -53,6 +56,19 @@ function PlayState:update( dt )
 		end
 
 		self.game_frame = self.game_frame + 1
+
+		if self.mouse_fov_is_dirty or self.mouse_x ~= self.old_mouse_x or self.mouse_y ~= self.old_mouse_y then
+			-- mouse is over a new square
+
+			--calculate FOV
+			self.visible_tiles = {}
+			if self.current_map:in_bounds(self.mouse_x, self.mouse_y) and self.current_map:get_block(self.mouse_x, self.mouse_y) ~= 99 then
+				self:calculate_fov(self.mouse_x, self.mouse_y, self.visible_tiles)
+			end
+
+			self.mouse_fov_is_dirty = false
+			self.old_mouse_x, self.old_mouse_y = self.mouse_x, self.mouse_y
+		end
 
 		if controller:pressed( 'r_left' ) then
 			camera.shift_target( -24, 0 )
@@ -99,13 +115,13 @@ function PlayState:update( dt )
 				self.current_map:move_pawn( self.current_animation.x1, self.current_animation.y1, self.current_animation.x2, self.current_animation.y2 )
 				p.x, p.y = self.current_animation.x2, self.current_animation.y2
 
-				self.current_animation.t = self.current_animation.t + 6 * dt
+				self.current_animation.t = self.current_animation.t + 12 * dt
 			elseif self.current_animation.t < 1 then
 				local p = self.pawn_list[self.current_animation.pid]
 				p.offset_x = mymath.abs_floor(TILE_SIZE * (self.current_animation.x1 - self.current_animation.x2) * (1 - self.current_animation.t))
 				p.offset_y = mymath.abs_floor(TILE_SIZE * (self.current_animation.y1 - self.current_animation.y2) * (1 - self.current_animation.t))
 
-				self.current_animation.t = self.current_animation.t + 6 * dt
+				self.current_animation.t = self.current_animation.t + 12 * dt
 			else
 				-- anim finished
 				local p = self.pawn_list[self.current_animation.pid]
@@ -269,6 +285,81 @@ function PlayState:order_move_pawn( pid, path, action_cost )
 		-- elseif p.actions == 1 then
 		-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
 		-- end
+	end
+end
+
+function PlayState:calculate_fov(ox, oy, vis_table)
+	-- visible from the given point
+	fov(ox,oy,28,
+		function(x, y, dir)	-- get_transparent_edge
+			if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
+				return false
+			else
+				return (self.current_map:get_edge(x, y, dir) ~= 99)
+			end
+		end,
+		function(x, y)	-- set_visible
+			vis_table[grid.hash(x,y)] = "c"
+		end)
+
+	if self.current_map:can_lean_south(ox,oy) then
+		-- lean south
+		fov(ox,oy+1,28,
+			function(x, y, dir)	-- get_transparent_edge
+				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
+					return false
+				else
+					return (self.current_map:get_edge(x, y, dir) ~= 99)
+				end
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "s"
+			end)
+	end
+
+	if self.current_map:can_lean_north(ox,oy) then
+		-- lean north
+		fov(ox,oy-1,28,
+			function(x, y, dir)	-- get_transparent_edge
+				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
+					return false
+				else
+					return (self.current_map:get_edge(x, y, dir) ~= 99)
+				end
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "n"
+			end)
+	end
+
+	if self.current_map:can_lean_west(ox,oy) then
+		-- lean west
+		fov(ox-1,oy,28,
+			function(x, y, dir)	-- get_transparent_edge
+				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
+					return false
+				else
+					return (self.current_map:get_edge(x, y, dir) ~= 99)
+				end
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "w"
+			end)
+	end
+
+	if self.current_map:can_lean_east(ox,oy) then
+		-- lean east
+		fov(ox+1,oy,28,
+			function(x, y, dir)	-- get_transparent_edge
+				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
+					return false
+				else
+					return (self.current_map:get_edge(x, y, dir) ~= 99)
+				end
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "e"
+			end)
 	end
 end
 

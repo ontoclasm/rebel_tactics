@@ -2,6 +2,7 @@
 class = require "lib/30log"
 baton = require "lib/baton"
 tiny = require "lib/tiny"
+fov = require "lib/rsfov"
 
 camera = require "camera"
 color = require "color"
