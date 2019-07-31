@@ -33,7 +33,7 @@ function PlayState:enter()
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point( mouse_sx, mouse_sy )
 	self.mouse_fov_is_dirty = true
-	self.visible_tiles = {}
+	self.visible_tiles = nil
 
 	img.tileset_batch_is_dirty = true
 end
@@ -64,6 +64,8 @@ function PlayState:update( dt )
 			self.visible_tiles = {}
 			if self.current_map:in_bounds(self.mouse_x, self.mouse_y) and self.current_map:get_block(self.mouse_x, self.mouse_y) ~= 99 then
 				self:calculate_fov(self.mouse_x, self.mouse_y, self.visible_tiles)
+			else
+				self.visible_tiles = nil
 			end
 
 			self.mouse_fov_is_dirty = false

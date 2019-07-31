@@ -15,13 +15,13 @@ function img.render(state)
 		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_x, state.mouse_y))
 	end
 
-	-- draw FOV
-	local x, y
-	for hash,v in pairs( state.visible_tiles ) do
-		x, y = grid.unhash(hash)
-		img.set_color_by_dir(v)
-		img.draw_to_grid("cursor_mouse", x, y)
-	end
+	-- -- draw FOV
+	-- local x, y
+	-- for hash,v in pairs( state.visible_tiles ) do
+	-- 	x, y = grid.unhash(hash)
+	-- 	img.set_color_by_dir(v)
+	-- 	img.draw_to_grid("cursor_mouse", x, y)
+	-- end
 
 	-- pathfinder debug
 	if pathfinder.on then
@@ -86,6 +86,18 @@ function img.render(state)
 		-- love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
 	end
 
+	-- draw FoV
+	if state.visible_tiles then
+		love.graphics.setColor(color.bg)
+		for x = 1, state.current_map.width do
+			for y = 1, state.current_map.height do
+				if not state.visible_tiles[grid.hash(x,y)] then
+					img.draw_to_grid("hatching", x, y)
+				end
+			end
+		end
+	end
+
 	-- tiny.refresh(world)
 	-- if img.DrawingSystem.modified then
 	-- 	img.DrawingSystem:onModify()
@@ -111,6 +123,7 @@ function img.setup()
 	img.nq("pawn",					 0,	 2)
 	img.nq("cursor_mouse",			 0,	 3)
 	img.nq("dot",					 1,	 3)
+	img.nq("hatching",				 2,	 3)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)

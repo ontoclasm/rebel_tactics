@@ -25,7 +25,8 @@ freely, subject to the following restrictions:
 
 -- Based on recursive shadowcasting by Björn Bergström
 
--- modified by Samuel Wilson; see https://github.com/markandgo/Lua-FOV for the original
+-- Modified by Samuel Wilson to handle thin walls
+-- See https://github.com/markandgo/Lua-FOV for the original source
 
 local octants = {
 	function(x,y) return x,y end,
