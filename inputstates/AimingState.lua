@@ -49,9 +49,21 @@ function AimingState:update( playstate, dt )
 		self.manager:switch_to("Selected")
 	elseif not playstate.animating then
 		-- enact orders
-		if controller:pressed( 'r2' ) then
-			-- FIRE
-			error("BANG")
+		if controller:pressed( 'r2' ) and p.actions >= 1 and self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
+			local target = playstate.current_map:get_pawn(playstate.mouse_x, playstate.mouse_y)
+			if target then
+				-- FIRE
+				p.actions = p.actions - 1
+				playstate.pawn_list[target].alive = false
+				if p.actions > 0 then
+					self.manager:switch_to("Selected")
+				else
+					local next = playstate:get_next_pawn()
+					playstate.selected_pawn = next.id
+					camera.set_target_by_grid_point(next.x, next.y)
+					self.manager:switch_to("Selected")
+				end
+			end
 		end
 	end
 end

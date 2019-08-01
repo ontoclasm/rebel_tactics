@@ -20,6 +20,7 @@ function PlayState:enter()
 		table.insert( self.pawn_list, {
 			id = pawn_id, color = {1, pawn_id/8, 0},
 			x = spawn_x, y = spawn_y,
+			alive = true,
 			actions = 2
 		} )
 		self.current_map:set_pawn( spawn_x, spawn_y, pawn_id )
@@ -118,6 +119,13 @@ function PlayState:update( dt )
 				else
 					self.current_animation = self.animation_queue:dequeue()
 				end
+			end
+		end
+
+		-- remove dead pawns, i guess?
+		for k, v in pairs( self.pawn_list ) do
+			if not v.alive then
+				self.pawn_list[k] = nil
 			end
 		end
 
@@ -224,7 +232,7 @@ end
 
 function PlayState:get_next_pawn()
 	for k, v in pairs( self.pawn_list ) do
-		if v.actions > 0 then
+		if v.actions > 0 and v.alive then
 			return v
 		end
 	end

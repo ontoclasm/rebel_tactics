@@ -55,7 +55,7 @@ function SelectedState:update( playstate, dt )
 			playstate.selected_pawn = pid
 			self.manager:switch_to("Selected")
 		end
-	elseif controller:pressed( 'a' ) then
+	elseif controller:pressed( 'a' ) and p.actions >= 1 then
 		self.manager:switch_to("Aiming")
 	elseif controller:pressed( 'x' ) then
 		if p.actions == 2 then
