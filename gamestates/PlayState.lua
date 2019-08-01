@@ -53,7 +53,7 @@ function PlayState:update( dt )
 	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point( mouse_sx, mouse_sy )
 
 	-- updates even when paused?
-	camera.update()
+	camera.update( dt )
 
 	if not self.paused then
 		if controller:pressed( 'menu' ) then
@@ -234,6 +234,16 @@ function PlayState:get_selected_pawn()
 		error("missing pawn: "..self.selected_pawn)
 	end
 	return p, self.selected_pawn
+end
+
+function PlayState:get_next_pawn()
+	for k, v in pairs( self.pawn_list ) do
+		if v.actions > 0 then
+			return v
+		end
+	end
+
+	error("turn over!")
 end
 
 -- function PlayState:order_move_pawn( pid, path, action_cost )

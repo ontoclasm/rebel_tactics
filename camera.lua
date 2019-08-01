@@ -1,6 +1,8 @@
 local camera = { px=0, py=0, real_px=0, real_py=0, target_px=0, target_py=0 }
 
-function camera.update()
+local CAMERA_SPEED = 2.5
+
+function camera.update( dt )
 	-- lerp the camera
 	-- if controller:getActiveDevice() == "joystick" then
 	-- 	camera.tx = target_pos.x - window_w/2
@@ -12,13 +14,23 @@ function camera.update()
 
 	-- don't move if it's only a 1px adjustment; this avoids irritating little twitches due to rounding error in some cases
 	if math.abs(camera.target_px - camera.real_px) >= 2 then
-		camera.real_px = camera.real_px - (camera.real_px - camera.target_px) * 0.1
+		camera.real_px = camera.real_px - (camera.real_px - camera.target_px) * CAMERA_SPEED * dt
 	end
 	if math.abs(camera.target_py - camera.real_py) >= 2 then
-		camera.real_py = camera.real_py - (camera.real_py - camera.target_py) * 0.1
+		camera.real_py = camera.real_py - (camera.real_py - camera.target_py) * CAMERA_SPEED * dt
 	end
 
 	camera.px, camera.py = math.floor(camera.real_px - window_w/2), math.floor(camera.real_py - window_h/2)
+end
+
+function camera.set_target(px, py)
+	camera.target_px = px
+	camera.target_py = py
+end
+
+function camera.set_target_by_grid_point(gx, gy)
+	camera.target_px = ((gx+0.5) * TILE_SIZE)
+	camera.target_py = ((gy+0.5) * TILE_SIZE)
 end
 
 function camera.shift_target(dpx, dpy)

@@ -65,19 +65,12 @@ function SelectedState:update( playstate, dt )
 					pathfinder:reset()
 				end
 
-				-- x, y = grid.unhash(path[#path]) -- end of the path
-				-- self.current_map:move_pawn( p.x, p.y, x, y )
-				-- p.x = x
-				-- p.y = y
-
-				-- if p.actions == 0 then
-				-- 	self:unselect_pawn()
-				-- elseif p.actions == 2 then
-				-- 	-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
-				-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5005000 )
-				-- elseif p.actions == 1 then
-				-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
-				-- end
+				if p.actions == 0 then
+					local p = playstate:get_next_pawn()
+					playstate.selected_pawn = p.id
+					camera.set_target_by_grid_point(p.x, p.y)
+					self.manager:switch_to("Selected")
+				end
 			end
 		end
 	end
