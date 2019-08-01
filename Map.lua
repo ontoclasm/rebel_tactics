@@ -140,7 +140,7 @@ function Map:find_random_floor()
 	for tries = 1, 1000 do
 		x = love.math.random( 1, self.width )
 		y = love.math.random( 1, self.height )
-		if self:get_block( x, y ) >= 1 and self:get_block( x, y ) <= 3 then
+		if self:get_block( x, y ) >= 1 and self:get_block( x, y ) <= 3 and not self:get_pawn( x, y ) then
 			return x, y
 		end
 	end

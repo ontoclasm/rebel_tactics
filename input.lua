@@ -11,9 +11,10 @@ local input = {
 		dp_up = {'key:w', 'button:dpup'},
 		dp_down = {'key:s', 'button:dpdown'},
 		-- buttons
-		a = {'key:g', 'button:a'},
-		x = {'key:r', 'button:x'},
-		y = {'key:t', 'button:y'},
+		a = {'key:z', 'button:a'},
+		b = {'key:x', 'button:b'},
+		x = {'key:a', 'button:x'},
+		y = {'key:s', 'button:y'},
 		r1 = {'mouse:1', 'button:rightshoulder'},
 		r2 = {'mouse:2'},
 		l1 = {'key:space', 'button:leftshoulder'},

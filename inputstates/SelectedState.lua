@@ -13,6 +13,18 @@ function SelectedState:enter()
 end
 
 function SelectedState:update( playstate, dt )
+	local p = playstate:get_selected_pawn()
+	if p.actions > 0 and not pathfinder.on and not playstate.animating then
+		if p.actions == 2 then
+			-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+			pathfinder:build_move_radius( playstate.current_map, p.x, p.y, 5005000 )
+		elseif p.actions == 1 then
+			pathfinder:build_move_radius( playstate.current_map, p.x, p.y, 5000 )
+		else
+			pathfinder:reset()
+		end
+	end
+
 	if controller:pressed( 'r_left' ) then
 		camera.shift_target( -24, 0 )
 	end
@@ -39,51 +51,40 @@ function SelectedState:update( playstate, dt )
 			playstate.selected_pawn = pid
 			self.manager:switch_to("Selected")
 		end
-	end
+	elseif controller:pressed( 'a' ) then
+		self.manager:switch_to("Aiming")
+	elseif not playstate.animating then
+		-- enact orders
+		if controller:pressed( 'r2' ) then
+			-- move selected pawn to mouse point
+			local path, action_cost = pathfinder:path_to( playstate.mouse_x, playstate.mouse_y )
+			if path and #path > 1 then
+				-- playstate:order_move_pawn( playstate.selected_pawn, path, energy_cost )
+				if p.actions < action_cost then
+					error( "not enough actions" )
+				else
+					p.actions = p.actions - action_cost
 
-	if controller:pressed( 'r2' ) and not playstate.animating then
-		-- move selected pawn to mouse point
-		local path, action_cost = pathfinder:path_to( playstate.mouse_x, playstate.mouse_y )
-		if path and #path > 1 then
-			-- playstate:order_move_pawn( playstate.selected_pawn, path, energy_cost )
+					for step = 1, #path - 1 do
+						x1, y1 = grid.unhash(path[step])
+						x2, y2 = grid.unhash(path[step+1])
 
-			local p, pid = playstate:get_selected_pawn()
-			if p.actions < action_cost then
-				error( "not enough actions" )
-			else
-				p.actions = p.actions - action_cost
+						-- step from x1y1 to x2y2
+						-- XXX check for reactions etc.
+						playstate.animation_queue:enqueue({ kind = "step", pid = p.id, x1 = x1, y1 = y1, x2 = x2, y2 = y2, t = 0 })
+						playstate.animating = true
 
-				for step = 1, #path - 1 do
-					x1, y1 = grid.unhash(path[step])
-					x2, y2 = grid.unhash(path[step+1])
+						pathfinder:reset()
+					end
 
-					-- step from x1y1 to x2y2
-					-- XXX check for reactions etc.
-					playstate.animation_queue:enqueue({ kind = "step", pid = pid, x1 = x1, y1 = y1, x2 = x2, y2 = y2, t = 0 })
-					playstate.animating = true
-
-					pathfinder:reset()
-				end
-
-				if p.actions == 0 then
-					local p = playstate:get_next_pawn()
-					playstate.selected_pawn = p.id
-					camera.set_target_by_grid_point(p.x, p.y)
-					self.manager:switch_to("Selected")
+					if p.actions == 0 then
+						local next = playstate:get_next_pawn()
+						playstate.selected_pawn = next.id
+						camera.set_target_by_grid_point(next.x, next.y)
+						self.manager:switch_to("Selected")
+					end
 				end
 			end
-		end
-	end
-
-	local p = playstate:get_selected_pawn()
-	if p.actions > 0 and not pathfinder.on and not playstate.animating then
-		if p.actions == 2 then
-			-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
-			pathfinder:build_move_radius( playstate.current_map, p.x, p.y, 5005000 )
-		elseif p.actions == 1 then
-			pathfinder:build_move_radius( playstate.current_map, p.x, p.y, 5000 )
-		else
-			pathfinder:reset()
 		end
 	end
 end

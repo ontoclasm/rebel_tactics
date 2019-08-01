@@ -231,7 +231,7 @@ end
 function PlayState:get_selected_pawn()
 	local p = self.pawn_list[self.selected_pawn]
 	if not p then
-		error("missing pawn: "..self.selected_pawn)
+		error("missing pawn!")
 	end
 	return p, self.selected_pawn
 end
@@ -367,7 +367,8 @@ end
 
 PlayState.input_states = {
 	Open = require "inputstates/OpenState",
-	Selected = require "inputstates/SelectedState"
+	Selected = require "inputstates/SelectedState",
+	Aiming = require "inputstates/AimingState",
 }
 
 return PlayState
