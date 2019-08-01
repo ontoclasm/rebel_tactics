@@ -6,7 +6,6 @@ fov = require "lib/rsfov"
 
 camera = require "camera"
 color = require "color"
-gamestate_manager = require "gamestate_manager"
 grid = require "grid"
 input = require "input"
 img = require "img"
@@ -15,6 +14,7 @@ pathfinder = require "pathfinder"
 
 Map = require "Map"
 Queue = require "Queue"
+StateManager = require "StateManager"
 
 font = love.graphics.newImageFont("assets/img/font.png",
 		" abcdefghijklmnopqrstuvwxyz" ..

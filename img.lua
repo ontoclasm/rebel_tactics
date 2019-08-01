@@ -1,111 +1,111 @@
 local img = {tile = {}}
 
-function img.render(state)
-	love.graphics.setColor(color.white)
+-- function img.render(state)
+-- 	love.graphics.setColor(color.white)
 
-	img.update_tileset_batch(state.current_map)
-	love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
+-- 	img.update_tileset_batch(state.current_map)
+-- 	love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 
-	-- draw mouse cursor
-	if state.current_map:in_bounds(state.mouse_x, state.mouse_y) and state.current_map:get_block(state.mouse_x, state.mouse_y) ~= 99 then
-		love.graphics.setColor(color.rouge)
-		img.draw_to_grid("cursor_mouse", state.mouse_x, state.mouse_y)
+-- 	-- draw mouse cursor
+-- 	if state.current_map:in_bounds(state.mouse_x, state.mouse_y) and state.current_map:get_block(state.mouse_x, state.mouse_y) ~= 99 then
+-- 		love.graphics.setColor(color.rouge)
+-- 		img.draw_to_grid("cursor_mouse", state.mouse_x, state.mouse_y)
 
-		-- love.graphics.setColor(color.rouge)
-		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_x, state.mouse_y))
-	end
+-- 		-- love.graphics.setColor(color.rouge)
+-- 		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(state.mouse_x, state.mouse_y))
+-- 	end
 
-	-- -- draw FOV
-	-- local x, y
-	-- for hash,v in pairs( state.visible_tiles ) do
-	-- 	x, y = grid.unhash(hash)
-	-- 	img.set_color_by_dir(v)
-	-- 	img.draw_to_grid("cursor_mouse", x, y)
-	-- end
+-- 	-- -- draw FOV
+-- 	-- local x, y
+-- 	-- for hash,v in pairs( state.visible_tiles ) do
+-- 	-- 	x, y = grid.unhash(hash)
+-- 	-- 	img.set_color_by_dir(v)
+-- 	-- 	img.draw_to_grid("cursor_mouse", x, y)
+-- 	-- end
 
-	-- pathfinder debug
-	if pathfinder.on then
-		if pathfinder.debug_last_h then
-			for h, _ in pairs( pathfinder.fringes ) do
-				x, y = grid.unhash( h )
-				img.set_color_by_energy( pathfinder.energies[ h ] )
-				img.draw_to_grid("cursor_mouse", x, y)
-			end
+-- 	-- pathfinder debug
+-- 	if pathfinder.on then
+-- 		if pathfinder.debug_last_h then
+-- 			for h, _ in pairs( pathfinder.fringes ) do
+-- 				x, y = grid.unhash( h )
+-- 				img.set_color_by_energy( pathfinder.energies[ h ] )
+-- 				img.draw_to_grid("cursor_mouse", x, y)
+-- 			end
 
-			local path = pathfinder:path_to( grid.unhash( pathfinder.debug_last_h ) )
-			if path then
-				local a, b, c, d, en
-				for i = 1, #path - 1 do
-					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
-					a, b = grid.unhash( path[ i ] )
-					c, d = grid.unhash( path[ i+1 ] )
-					a, b = camera.screen_point_from_grid_point( a, b )
-					c, d = camera.screen_point_from_grid_point( c, d )
-					love.graphics.line( a, b, c, d )
-				end
-			end
-		else
-			local path = pathfinder:path_to( state.mouse_x, state.mouse_y )
-			if path then
-				local a, b, c, d, en
-				for i = 1, #path - 1 do
-					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
-					a, b = grid.unhash( path[ i ] )
-					c, d = grid.unhash( path[ i+1 ] )
-					a, b = camera.screen_point_from_grid_point( a, b )
-					c, d = camera.screen_point_from_grid_point( c, d )
-					love.graphics.line( a, b, c, d )
-				end
-			end
-		end
+-- 			local path = pathfinder:path_to( grid.unhash( pathfinder.debug_last_h ) )
+-- 			if path then
+-- 				local a, b, c, d, en
+-- 				for i = 1, #path - 1 do
+-- 					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
+-- 					a, b = grid.unhash( path[ i ] )
+-- 					c, d = grid.unhash( path[ i+1 ] )
+-- 					a, b = camera.screen_point_from_grid_point( a, b )
+-- 					c, d = camera.screen_point_from_grid_point( c, d )
+-- 					love.graphics.line( a, b, c, d )
+-- 				end
+-- 			end
+-- 		else
+-- 			local path = pathfinder:path_to( state.mouse_x, state.mouse_y )
+-- 			if path then
+-- 				local a, b, c, d, en
+-- 				for i = 1, #path - 1 do
+-- 					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
+-- 					a, b = grid.unhash( path[ i ] )
+-- 					c, d = grid.unhash( path[ i+1 ] )
+-- 					a, b = camera.screen_point_from_grid_point( a, b )
+-- 					c, d = camera.screen_point_from_grid_point( c, d )
+-- 					love.graphics.line( a, b, c, d )
+-- 				end
+-- 			end
+-- 		end
 
-		local en
-		for x = 1, state.current_map.width do
-			for y = 1, state.current_map.height do
-				en = pathfinder.energies[ grid.hash( x, y ) ]
-				if en then
-					img.set_color_by_energy( en )
-					img.draw_to_grid("dot", x, y)
-				end
-			end
-		end
-	end
+-- 		local en
+-- 		for x = 1, state.current_map.width do
+-- 			for y = 1, state.current_map.height do
+-- 				en = pathfinder.energies[ grid.hash( x, y ) ]
+-- 				if en then
+-- 					img.set_color_by_energy( en )
+-- 					img.draw_to_grid("dot", x, y)
+-- 				end
+-- 			end
+-- 		end
+-- 	end
 
-	-- draw pawns
-	for _, p in pairs(state.pawn_list) do
-		-- xxx cull off-screens?
-		love.graphics.setColor((p.id == state.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15))
-			or p.color)
-		img.draw_to_grid("pawn", p.x, p.y, p.offset_x, p.offset_y)
+-- 	-- draw pawns
+-- 	for _, p in pairs(state.pawn_list) do
+-- 		-- xxx cull off-screens?
+-- 		love.graphics.setColor((p.id == state.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15))
+-- 			or p.color)
+-- 		img.draw_to_grid("pawn", p.x, p.y, p.offset_x, p.offset_y)
 
-		-- if p.id == state.selected_pawn then
-		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15)))
-		-- else
-		-- 	love.graphics.setColor(p.color)
-		-- end
-		-- love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
-	end
+-- 		-- if p.id == state.selected_pawn then
+-- 		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - state.selected_start_frame) / 15)))
+-- 		-- else
+-- 		-- 	love.graphics.setColor(p.color)
+-- 		-- end
+-- 		-- love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
+-- 	end
 
-	-- draw FoV
-	if state.visible_tiles then
-		love.graphics.setColor(color.bg)
-		for x = 1, state.current_map.width do
-			for y = 1, state.current_map.height do
-				if not state.visible_tiles[grid.hash(x,y)] then
-					img.draw_to_grid("hatching", x, y)
-				end
-			end
-		end
-	end
+-- 	-- draw FoV
+-- 	if state.visible_tiles then
+-- 		love.graphics.setColor(color.bg)
+-- 		for x = 1, state.current_map.width do
+-- 			for y = 1, state.current_map.height do
+-- 				if not state.visible_tiles[grid.hash(x,y)] then
+-- 					img.draw_to_grid("hatching", x, y)
+-- 				end
+-- 			end
+-- 		end
+-- 	end
 
-	-- tiny.refresh(world)
-	-- if img.DrawingSystem.modified then
-	-- 	img.DrawingSystem:onModify()
-	-- end
-	-- img.DrawingSystem:update()
+-- 	-- tiny.refresh(world)
+-- 	-- if img.DrawingSystem.modified then
+-- 	-- 	img.DrawingSystem:onModify()
+-- 	-- end
+-- 	-- img.DrawingSystem:update()
 
-	love.graphics.setColor(color.white)
-end
+-- 	love.graphics.setColor(color.white)
+-- end
 
 function img.setup()
 	img.cursor = love.graphics.newImage("assets/img/cursor.png")

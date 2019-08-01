@@ -29,20 +29,22 @@ function love.load()
 	-- 	img.DrawingSystem
 	-- )
 
-	gamestate = gamestate_manager.states.Splash:new()
-	if gamestate.enter then
-		gamestate:enter()
-	end
+	gamestate = StateManager({
+		Splash = require "gamestates/SplashState",
+		Play = require "gamestates/PlayState",
+		GameOver = require "gamestates/GameOverState",
+	},
+	"Splash")
 end
 
 function love.update( dt )
-	gamestate:update( dt )
+	gamestate.state:update( dt )
 end
 
 function love.draw()
-	gamestate:draw()
+	gamestate.state:draw()
 end
 
 function love.focus( f )
-	gamestate:focus( f )
+	gamestate.state:focus( f )
 end

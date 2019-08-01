@@ -2,6 +2,10 @@ local GameOverState = class("GameOverState")
 
 GameOverState.name = "GameOver Screen"
 
+function GameOverState:init( manager )
+	self.manager = manager
+end
+
 -- function GameOverState:enter()
 -- end
 
@@ -13,7 +17,7 @@ function GameOverState:update(dt)
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 
 	if controller:pressed('r1') or controller:pressed('view') or controller:pressed('menu') then
-		gamestate_manager.switch_to("Splash")
+		self.manager.switch_to("Splash")
 	end
 end
 

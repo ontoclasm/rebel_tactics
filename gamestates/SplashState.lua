@@ -2,6 +2,10 @@ local SplashState = class("SplashState")
 
 SplashState.name = "Splash Screen"
 
+function SplashState:init( manager )
+	self.manager = manager
+end
+
 -- function SplashState:enter()
 -- end
 
@@ -13,7 +17,7 @@ function SplashState:update(dt)
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 
 	if controller:pressed('r1') then
-		gamestate_manager.switch_to("Play")
+		self.manager:switch_to("Play")
 	elseif controller:pressed('view') or controller:pressed('menu') then
 		love.event.push("quit")
 	end
