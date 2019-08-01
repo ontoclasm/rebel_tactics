@@ -71,12 +71,14 @@ function AimingState:draw( playstate )
 		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(playstate.mouse_x, playstate.mouse_y))
 	end
 
-	-- draw aim line for funsies
-	love.graphics.setColor(color.rouge)
-	local p = playstate:get_selected_pawn()
-	local p_sx, p_sy = camera.screen_point_from_grid_point(p.x, p.y)
-	local m_sx, m_sy = camera.screen_point_from_grid_point(playstate.mouse_x, playstate.mouse_y)
-	love.graphics.line(p_sx, p_sy, m_sx, m_sy)
+	if self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
+		-- draw aim line for funsies
+		love.graphics.setColor(color.rouge)
+		local p = playstate:get_selected_pawn()
+		local p_sx, p_sy = camera.screen_point_from_grid_point(p.x, p.y)
+		local m_sx, m_sy = camera.screen_point_from_grid_point(playstate.mouse_x, playstate.mouse_y)
+		love.graphics.line(p_sx, p_sy, m_sx, m_sy)
+	end
 
 	-- draw pawns
 	for _, p in pairs(playstate.pawn_list) do

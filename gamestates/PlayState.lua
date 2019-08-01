@@ -121,20 +121,6 @@ function PlayState:update( dt )
 			end
 		end
 
-		-- if pathfinder.debug_running and ( gui_frame - self.selected_start_frame ) % 5 == 0 then
-		-- 	pathfinder:build_move_radius_debug_step( self.current_map )
-		-- end
-
-		-- if pathfinder.on then
-		-- 	if not self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
-		-- 		pathfinder:reset()
-		-- 	elseif self.mouse_x ~= pathfinder.origin_x or self.mouse_y ~= pathfinder.origin_y then
-		-- 		pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
-		-- 	end
-		-- elseif self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
-		-- 	pathfinder:build_move_radius( self.current_map, self.mouse_x, self.mouse_y, 6006 )
-		-- end
-
 		-- tiny.update(world, TIMESTEP)
 
 		-- if self.gameover then

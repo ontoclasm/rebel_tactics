@@ -25,6 +25,10 @@ function SelectedState:update( playstate, dt )
 		end
 	end
 
+	if pathfinder.debug_running and ( gui_frame - self.start_frame ) % 5 == 0 then
+		pathfinder:build_move_radius_debug_step( playstate.current_map )
+	end
+
 	if controller:pressed( 'r_left' ) then
 		camera.shift_target( -24, 0 )
 	end
@@ -53,6 +57,13 @@ function SelectedState:update( playstate, dt )
 		end
 	elseif controller:pressed( 'a' ) then
 		self.manager:switch_to("Aiming")
+	elseif controller:pressed( 'x' ) then
+		if p.actions == 2 then
+			-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
+			pathfinder:build_move_radius_debug_start( playstate.current_map, p.x, p.y, 5005000 )
+		elseif p.actions == 1 then
+			pathfinder:build_move_radius_debug_start( playstate.current_map, p.x, p.y, 5000 )
+		end
 	elseif not playstate.animating then
 		-- enact orders
 		if controller:pressed( 'r2' ) then
