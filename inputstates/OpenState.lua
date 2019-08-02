@@ -39,7 +39,7 @@ function OpenState:draw( playstate )
 	love.graphics.setColor(color.white)
 
 	img.update_terrain_batches(playstate.current_map)
-	for i = , img.NUM_TERRAIN_LAYERS do
+	for i = 1, img.NUM_TERRAIN_LAYERS do
 		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 	end
 
