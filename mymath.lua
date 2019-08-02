@@ -66,6 +66,8 @@ end
 
 function mymath.one_chance_in(n) return love.math.random(1,n) == 1 end
 
+function mymath.coinflip() return love.math.random(1,2) == 1 end
+
 function mymath.random_spread(angle, spread) return angle + (spread * (2 * love.math.random() - 1)) end
 
 function mymath.weighted_spread(angle, spread) return angle + (spread * (love.math.random() - love.math.random())) end

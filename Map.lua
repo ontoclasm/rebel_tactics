@@ -114,53 +114,6 @@ function Map:get_edge( x, y, side )
 	end
 end
 
-function Map:get_nw_cap( x, y )
-	if not ( x >= 1 and x <= self.width + 1 and y >= 1 and y <= self.height + 1 ) then
-		error( "out of bounds: " .. x .. ", " .. y )
-	else
-		local cap, cap_elev = -999, -999
-		local edge, edge_elev
-
-		local h = self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET ]
-		if h then
-			edge, edge_elev = x % 1000, math.floor(x / 1000)
-			if edge_elev > cap_elev or (edge_elev == cap_elev and edge_data[edge].draw_priority > edge_data[edge].draw_priority) then
-				cap, elev = edge, edge_elev
-			end
-		end
-
-		h = self.edges[ x + (y - 1) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
-		if h then
-			edge, edge_elev = x % 1000, math.floor(x / 1000)
-			if edge_elev > cap_elev or (edge_elev == cap_elev and edge_data[edge].draw_priority > edge_data[edge].draw_priority) then
-				cap, elev = edge, edge_elev
-			end
-		end
-
-		h = self.edges[ (x - 1) + (y - 1) * EDGE_ROW_HASH_OFFSET ]
-		if h then
-			edge, edge_elev = x % 1000, math.floor(x / 1000)
-			if edge_elev > cap_elev or (edge_elev == cap_elev and edge_data[edge].draw_priority > edge_data[edge].draw_priority) then
-				cap, elev = edge, edge_elev
-			end
-		end
-
-		h = self.edges[ x + (y - 2) * EDGE_ROW_HASH_OFFSET + MAP_HASH ]
-		if h then
-			edge, edge_elev = x % 1000, math.floor(x / 1000)
-			if edge_elev > cap_elev or (edge_elev == cap_elev and edge_data[edge].draw_priority > edge_data[edge].draw_priority) then
-				cap, elev = edge, edge_elev
-			end
-		end
-
-		if cap > -999 then
-			return cap, elev
-		else
-			return nil, nil
-		end
-	end
-end
-
 function Map:set_pawn( x, y, pawn_id )
 	if not self:in_bounds( x, y ) then
 		error( "out of bounds: " .. x .. ", " .. y )
@@ -202,6 +155,61 @@ function Map:edge_is_translucent(x,y,dir)
 	else
 		local edge, _ = self:get_edge(x,y,dir)
 		return block_data[self:get_block_kind(x,y)].translucent and (not edge or edge_data[edge].translucent)
+	end
+end
+
+function Map:calculate_fov(ox, oy, vis_table)
+	-- visible from the given point
+	fov(ox,oy,28,
+		function(x, y, dir)	-- get_transparent_edge
+			return self:edge_is_translucent(x,y,dir)
+		end,
+		function(x, y)	-- set_visible
+			vis_table[grid.hash(x,y)] = "c"
+		end)
+
+	if self:can_lean_south(ox,oy) then
+		-- lean south
+		fov(ox,oy+1,28,
+			function(x, y, dir)	-- get_transparent_edge
+				return self:edge_is_translucent(x,y,dir)
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "s"
+			end)
+	end
+
+	if self:can_lean_north(ox,oy) then
+		-- lean north
+		fov(ox,oy-1,28,
+			function(x, y, dir)	-- get_transparent_edge
+				return self:edge_is_translucent(x,y,dir)
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "n"
+			end)
+	end
+
+	if self:can_lean_west(ox,oy) then
+		-- lean west
+		fov(ox-1,oy,28,
+			function(x, y, dir)	-- get_transparent_edge
+				return self:edge_is_translucent(x,y,dir)
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "w"
+			end)
+	end
+
+	if self:can_lean_east(ox,oy) then
+		-- lean east
+		fov(ox+1,oy,28,
+			function(x, y, dir)	-- get_transparent_edge
+				return self:edge_is_translucent(x,y,dir)
+			end,
+			function(x, y)	-- set_visible
+				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "e"
+			end)
 	end
 end
 
@@ -324,119 +332,6 @@ function Map:orth_step_cost( from_x, from_y, dx, dy )
 	end
 end
 
--- function Map:terrain_move_cost( from_x, from_y, dx, dy )
--- 	if dx == 1 then
--- 		if dy == 1 then
--- 			-- se
--- 			if math.max( self:terrain_move_cost( from_x, from_y, 1,0 ),
--- 						 self:terrain_move_cost( from_x+1, from_y, 0,1 ),
--- 						 self:terrain_move_cost( from_x, from_y, 0,1 ),
--- 						 self:terrain_move_cost( from_x, from_y+1, 1,0 ),
--- 						 diagonal_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
--- 				return 1
--- 			else
--- 				return 99
--- 			end
--- 		elseif dy == 0 then
--- 			-- e
--- 			return orth_block_move_cost( from_x, from_y, dx, dy )
--- 		else -- dy == -1
--- 			-- ne
--- 			if math.max( self:terrain_move_cost( from_x, from_y, 1,0 ),
--- 						 self:terrain_move_cost( from_x+1, from_y, 0,-1 ),
--- 						 self:terrain_move_cost( from_x, from_y, 0,-1 ),
--- 						 self:terrain_move_cost( from_x, from_y-1, 1,0 ),
--- 						 diagonal_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
--- 				return 1
--- 			else
--- 				return 99
--- 			end
--- 		end
--- 	elseif dx == 0 then
--- 		if dy == 1 then
--- 			-- s
--- 			return orth_block_move_cost( from_x, from_y, dx, dy )
--- 		elseif dy == 0 then
--- 			-- ???
--- 			error()
--- 		else -- dy == -1
--- 			-- n
--- 			return orth_block_move_cost( from_x, from_y, dx, dy )
--- 		end
--- 	else -- dx == -1
--- 		if dy == 1 then
--- 			-- sw
--- 			if math.max( self:terrain_move_cost( from_x, from_y, -1,0 ),
--- 						 self:terrain_move_cost( from_x-1, from_y, 0,1 ),
--- 						 self:terrain_move_cost( from_x, from_y, 0,1 ),
--- 						 self:terrain_move_cost( from_x, from_y+1, -1,0 ),
--- 						 diagonal_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
--- 				return 1
--- 			else
--- 				return 99
--- 			end
--- 		elseif dy == 0 then
--- 			-- w
--- 			return orth_block_move_cost( from_x, from_y, dx, dy )
--- 		else -- dy == -1
--- 			-- nw
--- 			if math.max( self:terrain_move_cost( from_x, from_y, -1,0 ),
--- 						 self:terrain_move_cost( from_x-1, from_y, 0,-1 ),
--- 						 self:terrain_move_cost( from_x, from_y, 0,-1 ),
--- 						 self:terrain_move_cost( from_x, from_y-1, -1,0 ),
--- 						 diagonal_move_cost( self:get_block( from_x, from_y ), self:get_block( from_x + dx, from_y + dy ) ) ) == 1 then
--- 				return 1
--- 			else
--- 				return 99
--- 			end
--- 		end
--- 	end
--- end
-
--- function orth_move_cost( from, to )
-
-
--- 	if from == 1 then
--- 		if to == 1 then
--- 			return 1
--- 		elseif to == 2 then
--- 			return 10
--- 		end
--- 	elseif from == 2 then
--- 		if to == 1 or to == 2 then
--- 			return 1
--- 		elseif to == 3 then
--- 			return 10
--- 		end
--- 	elseif from == 3 then
--- 		if to == 3 or to == 2 then
--- 			return 1
--- 		end
--- 	end
-
--- 	return 99
--- end
-
--- function diagonal_block_move_cost( from, to )
--- 	if ( to == 1 and from == 1 ) or ( to == 2 and from == 2 ) or ( to == 3 and from == 3 ) then
--- 		return 1
--- 	end
-
--- 	return 99
--- end
-
--- function edge_move_cost( edge )
--- 	if edge then
--- 		if edge == 99 then
--- 			return 99
--- 		else
--- 			return 10
--- 		end
--- 	else
--- 		return 1
--- 	end
--- end
-
 -- debug
 function Map:fill_debug()
 	for x = 1, self.width do
@@ -514,10 +409,10 @@ function Map:fill_debug()
 				end
 			else
 				local c = (self:get_block_kind(x,y) == 999 and 1 or 0) + (self:get_block_kind(x,y-1) == 999 and 1 or 0)
-				if c == 1 or (c == 0 and mymath.one_chance_in(16)) then
+				if c == 1 or (c == 0 and mymath.one_chance_in(32)) then
 					self:set_edge(x, y, "n", 999)
-				elseif c == 0 and mymath.one_chance_in(16) then
-					self:set_edge(x, y, "n", 10)
+				elseif c == 0 and mymath.one_chance_in(8) then
+					self:set_edge(x, y, "n", mymath.coinflip() and 10 or 20)
 				end
 			end
 			if y == self.height then
@@ -532,10 +427,10 @@ function Map:fill_debug()
 				end
 			else
 				local c = (self:get_block_kind(x,y) == 999 and 1 or 0) + (self:get_block_kind(x-1,y) == 999 and 1 or 0)
-				if c == 1 or (c == 0 and mymath.one_chance_in(16)) then
+				if c == 1 or (c == 0 and mymath.one_chance_in(32)) then
 					self:set_edge(x, y, "w", 999)
-				elseif c == 0 and mymath.one_chance_in(16) then
-					self:set_edge(x, y, "w", 10)
+				elseif c == 0 and mymath.one_chance_in(8) then
+					self:set_edge(x, y, "w", mymath.coinflip() and 10 or 20)
 				end
 			end
 			if x == self.width then

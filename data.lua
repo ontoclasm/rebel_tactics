@@ -69,7 +69,7 @@ edge_data = {
 
 		tile = "edge_thick",
 		colors = {
-			[-1] = color.grey06,
+			[-1] = color.white,
 		}
 	},
 }

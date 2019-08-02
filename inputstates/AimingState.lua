@@ -16,7 +16,7 @@ function AimingState:update( playstate, dt )
 	if not self.visible_tiles then
 		--calculate FOV
 		self.visible_tiles = {}
-		playstate:calculate_fov(p.x, p.y, self.visible_tiles)
+		playstate.current_map:calculate_fov(p.x, p.y, self.visible_tiles)
 	end
 
 	if controller:pressed( 'r_left' ) then

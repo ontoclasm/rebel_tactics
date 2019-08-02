@@ -207,22 +207,6 @@ end
 
 -- -- -- --
 
--- function PlayState:select_pawn( pid )
--- 	local p = self.pawn_list[pid]
--- 	if not p then
--- 		error("missing pawn: "..pid)
--- 	end
-
--- 	self.selected_pawn = pid
--- 	self.selected_start_frame = gui_frame
--- 	self.input_state:switch_to("Selected")
--- end
-
--- function PlayState:unselect_pawn()
--- 	self.selected_pawn = nil
--- 	pathfinder:reset()
--- end
-
 function PlayState:get_selected_pawn()
 	local p = self.pawn_list[self.selected_pawn]
 	if not p then
@@ -239,97 +223,6 @@ function PlayState:get_next_pawn()
 	end
 
 	error("turn over!")
-end
-
--- function PlayState:order_move_pawn( pid, path, action_cost )
--- 	p = self.pawn_list[pid]
--- 	if not p then
--- 		error( "missing pawn: " .. pid )
--- 	elseif p.actions < action_cost then
--- 		error( "not enough actions" )
--- 	else
--- 		p.actions = p.actions - action_cost
-
--- 		for step = 1, #path - 1 do
--- 			x1, y1 = grid.unhash(path[step])
--- 			x2, y2 = grid.unhash(path[step+1])
-
--- 			-- step from x1y1 to x2y2
--- 			-- XXX check for reactions etc.
--- 			self.animation_queue:enqueue({ kind = "step", pid = pid, x1 = x1, y1 = y1, x2 = x2, y2 = y2, t = 0 })
--- 		end
-
--- 		-- x, y = grid.unhash(path[#path]) -- end of the path
--- 		-- self.current_map:move_pawn( p.x, p.y, x, y )
--- 		-- p.x = x
--- 		-- p.y = y
-
--- 		self:unselect_pawn()
-
--- 		-- if p.actions == 0 then
--- 		-- 	self:unselect_pawn()
--- 		-- elseif p.actions == 2 then
--- 		-- 	-- pathfinder:build_move_radius_debug_start( self.current_map, self.pawn_list[pid].x, self.pawn_list[pid].y, 5005000 )
--- 		-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5005000 )
--- 		-- elseif p.actions == 1 then
--- 		-- 	pathfinder:build_move_radius( self.current_map, p.x, p.y, 5000 )
--- 		-- end
--- 	end
--- end
-
-function PlayState:calculate_fov(ox, oy, vis_table)
-	-- visible from the given point
-	fov(ox,oy,28,
-		function(x, y, dir)	-- get_transparent_edge
-			return self.current_map:edge_is_translucent(x,y,dir)
-		end,
-		function(x, y)	-- set_visible
-			vis_table[grid.hash(x,y)] = "c"
-		end)
-
-	if self.current_map:can_lean_south(ox,oy) then
-		-- lean south
-		fov(ox,oy+1,28,
-			function(x, y, dir)	-- get_transparent_edge
-				return self.current_map:edge_is_translucent(x,y,dir)
-			end,
-			function(x, y)	-- set_visible
-				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "s"
-			end)
-	end
-
-	if self.current_map:can_lean_north(ox,oy) then
-		-- lean north
-		fov(ox,oy-1,28,
-			function(x, y, dir)	-- get_transparent_edge
-				return self.current_map:edge_is_translucent(x,y,dir)
-			end,
-			function(x, y)	-- set_visible
-				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "n"
-			end)
-	end
-
-	if self.current_map:can_lean_west(ox,oy) then
-		-- lean west
-		fov(ox-1,oy,28,
-			function(x, y, dir)	-- get_transparent_edge
-				return self.current_map:edge_is_translucent(x,y,dir)
-			end,
-			function(x, y)	-- set_visible
-				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "w"
-			end)
-	end
-
-	if self.current_map:can_lean_east(ox,oy) then
-		-- lean east
-		fov(ox+1,oy,28,
-			function(x, y, dir)	-- get_transparent_edge
-				return self.current_map:edge_is_translucent(x,y,dir)
-			end,
-			function(x, y)	-- set_visible
-				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "e"
-			end)
-	end
 end
 
 function PlayState:pause()
