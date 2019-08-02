@@ -5,7 +5,7 @@ img.NUM_TERRAIN_LAYERS = 7
 function img.setup()
 	img.cursor = love.graphics.newImage("assets/img/cursor.png")
 
-	img.tileset = love.graphics.newImage("assets/img/tileset.png")
+	img.tileset = love.graphics.newImage("assets/img/tileset_32.png")
 	img.tileset:setFilter("nearest", "linear")
 
 	img.nq("block",							 0,	 0)
@@ -42,7 +42,7 @@ function img.nq(name, imgx, imgy)
 end
 
 function img.nq_edge(name, imgx, imgy)
-	img.tile[name] = love.graphics.newQuad(imgx * 32, 168 + imgy * 8, 32, 8,
+	img.tile[name] = love.graphics.newQuad(imgx * 1.5 * TILE_SIZE, TILE_SIZE * 7 + imgy * 8, TILE_SIZE * 1.5, 8,
 										   img.tileset:getWidth(), img.tileset:getHeight())
 end
 
@@ -92,14 +92,14 @@ function img.update_terrain_batches(map)
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
 						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - 4, y * TILE_SIZE - 4)
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - TILE_SIZE_QUARTER, y * TILE_SIZE - 4)
 					end
 				elseif map:in_bounds(x + corner_x, y + corner_y - 1) then -- southern edge
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y - 1, "s")
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
 						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - 4, y * TILE_SIZE - 4)
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - TILE_SIZE_QUARTER, y * TILE_SIZE - 4)
 					end
 				end
 			end
@@ -111,14 +111,14 @@ function img.update_terrain_batches(map)
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
 						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - 4, PI_2)
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - TILE_SIZE_QUARTER, PI_2)
 					end
 				elseif map:in_bounds(x + corner_x - 1, y + corner_y) then -- eastern edge
 					thing, thing_elev = map:get_edge(x + corner_x - 1, y + corner_y, "e")
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
 						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - 4, PI_2)
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - TILE_SIZE_QUARTER, PI_2)
 					end
 				end
 			end
@@ -151,7 +151,7 @@ function img.draw_to_grid(tilename, x, y, offset_x, offset_y, rotation)
 	px, py = camera.screen_point_from_grid_point(x, y)
 	px = px + (offset_x or 0)
 	py = py + (offset_y or 0)
-	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_CENTER, TILE_CENTER)
+	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_SIZE_HALF, TILE_SIZE_HALF)
 end
 
 function img.draw_region_tile(name, x, y, neighborhood )
@@ -159,25 +159,25 @@ function img.draw_region_tile(name, x, y, neighborhood )
 	-- [6][7][8]
 	-- [5]   [1]
 	-- [4][3][2]
-
+	local offset = TILE_SIZE_QUARTER
 	px, py = camera.screen_point_from_grid_point(x, y)
 
 	-- top left
 	if neighborhood[5] then
 		if neighborhood[7] then
 			if neighborhood[6] then
-				love.graphics.draw(img.tileset, img.tile[name.."_in"], px - 6, py - 6, 0, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px - offset, py - offset, 0, 1, 1, offset, offset)
 			else
-				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px - 6, py - 6, 0, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px - offset, py - offset, 0, 1, 1, offset, offset)
 			end
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py - 6, 0, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - offset, py - offset, 0, 1, 1, offset, offset)
 		end
 	else
 		if neighborhood[7] then
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py - 6, -PI_2, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - offset, py - offset, -PI_2, 1, 1, offset, offset)
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px - 6, py - 6, 0, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px - offset, py - offset, 0, 1, 1, offset, offset)
 		end
 	end
 
@@ -185,18 +185,18 @@ function img.draw_region_tile(name, x, y, neighborhood )
 	if neighborhood[1] then
 		if neighborhood[7] then
 			if neighborhood[8] then
-				love.graphics.draw(img.tileset, img.tile[name.."_in"], px + 6, py - 6, 0, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px + offset, py - offset, 0, 1, 1, offset, offset)
 			else
-				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px + 6, py - 6, PI_2, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px + offset, py - offset, PI_2, 1, 1, offset, offset)
 			end
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py - 6, 0, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + offset, py - offset, 0, 1, 1, offset, offset)
 		end
 	else
 		if neighborhood[7] then
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py - 6, PI_2, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + offset, py - offset, PI_2, 1, 1, offset, offset)
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px + 6, py - 6, PI_2, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px + offset, py - offset, PI_2, 1, 1, offset, offset)
 		end
 	end
 
@@ -204,18 +204,18 @@ function img.draw_region_tile(name, x, y, neighborhood )
 	if neighborhood[5] then
 		if neighborhood[3] then
 			if neighborhood[4] then
-				love.graphics.draw(img.tileset, img.tile[name.."_in"], px - 6, py + 6, 0, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px - offset, py + offset, 0, 1, 1, offset, offset)
 			else
-				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px - 6, py + 6, -PI_2, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px - offset, py + offset, -PI_2, 1, 1, offset, offset)
 			end
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py + 6, PI, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - offset, py + offset, PI, 1, 1, offset, offset)
 		end
 	else
 		if neighborhood[3] then
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py + 6, -PI_2, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - offset, py + offset, -PI_2, 1, 1, offset, offset)
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px - 6, py + 6, -PI_2, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px - offset, py + offset, -PI_2, 1, 1, offset, offset)
 		end
 	end
 
@@ -223,18 +223,18 @@ function img.draw_region_tile(name, x, y, neighborhood )
 	if neighborhood[1] then
 		if neighborhood[3] then
 			if neighborhood[2] then
-				love.graphics.draw(img.tileset, img.tile[name.."_in"], px + 6, py + 6, 0, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px + offset, py + offset, 0, 1, 1, offset, offset)
 			else
-				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px + 6, py + 6, PI, 1, 1, 6, 6)
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px + offset, py + offset, PI, 1, 1, offset, offset)
 			end
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py + 6, PI, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + offset, py + offset, PI, 1, 1, offset, offset)
 		end
 	else
 		if neighborhood[3] then
-			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py + 6, PI_2, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + offset, py + offset, PI_2, 1, 1, offset, offset)
 		else
-			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px + 6, py + 6, PI, 1, 1, 6, 6)
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px + offset, py + offset, PI, 1, 1, offset, offset)
 		end
 	end
 end
@@ -266,31 +266,41 @@ function img.draw_cover( x, y, map )
 	end
 end
 
-function img.set_color_by_actions( act )
+function img.color_name_by_actions( act, elev )
 	if act >= 2 then
-		love.graphics.setColor( color.white )
+		return "white"
 	elseif act == 1 then
-		love.graphics.setColor( color.ltblue )
+		return "ltblue"..img.color_suffix_from_elev(elev)
 	elseif act == 0 then
-		love.graphics.setColor( color.orange )
+		return "orange"..img.color_suffix_from_elev(elev)
 	else
-		love.graphics.setColor( color.rouge )
+		return "oops"
 	end
 end
 
-function img.set_color_by_dir( dir )
-	if dir == "s" then
-		love.graphics.setColor( color.green )
-	elseif dir == "n" then
-		love.graphics.setColor( color.ltblue )
-	elseif dir == "e" then
-		love.graphics.setColor( color.yellow )
-	elseif dir == "w" then
-		love.graphics.setColor( color.orange )
+function img.color_suffix_from_elev(elev)
+	if elev == 10 then
+		return "01"
+	elseif elev == 20 then
+		return "02"
 	else
-		love.graphics.setColor( color.white )
+		return "03"
 	end
 end
+
+-- function img.set_color_by_dir( dir )
+-- 	if dir == "s" then
+-- 		love.graphics.setColor( color.green )
+-- 	elseif dir == "n" then
+-- 		love.graphics.setColor( color.ltblue )
+-- 	elseif dir == "e" then
+-- 		love.graphics.setColor( color.yellow )
+-- 	elseif dir == "w" then
+-- 		love.graphics.setColor( color.orange )
+-- 	else
+-- 		love.graphics.setColor( color.white )
+-- 	end
+-- end
 
 function img.layer_from_elev( elev )
 	if elev < 10 then

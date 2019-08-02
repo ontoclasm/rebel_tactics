@@ -30,16 +30,16 @@ function SelectedState:update( playstate, dt )
 	end
 
 	if controller:pressed( 'r_left' ) then
-		camera.shift_target( -24, 0 )
+		camera.shift_target( -TILE_SIZE, 0 )
 	end
 	if controller:pressed( 'r_right' ) then
-		camera.shift_target( 24, 0 )
+		camera.shift_target( TILE_SIZE, 0 )
 	end
 	if controller:pressed( 'r_up' ) then
-		camera.shift_target( 0, -24 )
+		camera.shift_target( 0, -TILE_SIZE )
 	end
 	if controller:pressed( 'r_down' ) then
-		camera.shift_target( 0, 24 )
+		camera.shift_target( 0, TILE_SIZE )
 	end
 
 	if controller:pressed( 'r1' ) then
@@ -116,7 +116,7 @@ function SelectedState:draw( playstate )
 				if img.layer_from_elev( elev ) == i then
 					act = pathfinder:get_actions_remaining( x, y )
 					if act >= 0 then
-						img.set_color_by_actions( act )
+						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
 						neighborhood = {}
 						for dir = 1, 8 do
 							nx, ny = grid.neighbor(x,y,dir)
@@ -144,25 +144,25 @@ function SelectedState:draw( playstate )
 		if pathfinder.debug_last_h then
 			for h, _ in pairs( pathfinder.fringes ) do
 				x, y = grid.unhash( h )
-				img.set_color_by_actions( pathfinder:get_actions_remaining(x, y) )
-				img.draw_to_grid("cursor_base", x, y)
+				love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining(x, y), playstate.current_map:get_block_elev( x, y ) ) ] )
+				img.draw_to_grid("dot", x, y)
 			end
 
 			local path = pathfinder:path_to( grid.unhash( pathfinder.debug_last_h ) )
 			if path then
 				local a, b, c, d, en
 				for i = 1, #path - 1 do
-					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i+1 ] ) ) )
 					a, b = grid.unhash( path[ i ] )
 					c, d = grid.unhash( path[ i+1 ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( c, d ), 30 ) ] )
 					a, b = camera.screen_point_from_grid_point( a, b )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
 				end
 
 				for i = 2, #path do
-					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i ] ) ) )
 					a, b = grid.unhash( path[ i ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( a,b ), 30 ) ] )
 					img.draw_to_grid("dot", a, b)
 				end
 			end
@@ -171,17 +171,17 @@ function SelectedState:draw( playstate )
 			if path then
 				local a, b, c, d, en
 				for i = 1, #path - 1 do
-					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i+1 ] ) ) )
 					a, b = grid.unhash( path[ i ] )
 					c, d = grid.unhash( path[ i+1 ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( c, d ), 30 ) ] )
 					a, b = camera.screen_point_from_grid_point( a, b )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
 				end
 
 				for i = 2, #path do
-					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i ] ) ) )
 					a, b = grid.unhash( path[ i ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( a,b ), 30 ) ] )
 					img.draw_to_grid("dot", a, b)
 				end
 			end
@@ -217,25 +217,29 @@ function SelectedState:draw( playstate )
 
 	-- draw mouse cursor
 	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
+		local cursor_name
 		if pathfinder.on and pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] then
-			img.set_color_by_actions( pathfinder:get_actions_remaining(playstate.mouse_x, playstate.mouse_y) )
+			love.graphics.setColor(color[img.color_name_by_actions( pathfinder:get_actions_remaining(playstate.mouse_x, playstate.mouse_y), playstate.current_map:get_block_elev(playstate.mouse_x, playstate.mouse_y) )] )
+			cursor_name = "cursor_circle"
 		else
 			love.graphics.setColor(color.white)
+			cursor_name = "cursor_corners"
 		end
 
 		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
+		img.draw_to_grid(cursor_name, playstate.mouse_x, playstate.mouse_y)
 
-		-- for dx = -3, 3 do
-		-- 	for dy = -3, 3 do
-		-- 		if playstate.current_map:in_bounds(playstate.mouse_x + dx, playstate.mouse_y + dy) then
-		-- 			love.graphics.setColor(0.80, 0.70, 0.10, (math.max(math.abs(dx),math.abs(dy))) == 3 and 0.5 or 1)
-		-- 			local b = playstate.current_map:get_block_kind(playstate.mouse_x + dx, playstate.mouse_y + dy)
-		-- 			if b and block_data[b].floor then
-		-- 				img.draw_cover(playstate.mouse_x + dx, playstate.mouse_y + dy, playstate.current_map)
-		-- 			end
-		-- 		end
-		-- 	end
-		-- end
+		for dx = -2, 2 do
+			for dy = -2, 2 do
+				if playstate.current_map:in_bounds(playstate.mouse_x + dx, playstate.mouse_y + dy) then
+					local b, b_elev = playstate.current_map:get_block(playstate.mouse_x + dx, playstate.mouse_y + dy)
+					love.graphics.setColor(color["yellow"..img.color_suffix_from_elev(b_elev)])
+					if b and block_data[b].floor then
+						img.draw_cover(playstate.mouse_x + dx, playstate.mouse_y + dy, playstate.current_map)
+					end
+				end
+			end
+		end
 	end
 
 	-- tiny.refresh(world)

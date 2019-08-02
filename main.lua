@@ -1,12 +1,9 @@
 require "requires"
 
-TILE_SIZE = 24
-TILE_CENTER = 12
-
 function love.load()
 	gui_frame = 0
 
-	window_w, window_h = 800, 600
+	window_w, window_h = 1280, 1024
 	love.graphics.setBackgroundColor( color.rouge )
 
 	controller = input.setup_controller()

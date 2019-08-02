@@ -35,7 +35,7 @@ function PlayState:enter()
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
 
-	camera.set_location( 12 * 24 + 12, 8 * 24 + 12 )
+	camera.set_location( TILE_SIZE * (math.floor(self.current_map.width / 2) + 0.5), TILE_SIZE * (math.floor(self.current_map.height / 2) + 0.5) )
 
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 	self.mouse_x, self.mouse_y = camera.grid_point_from_screen_point( mouse_sx, mouse_sy )
@@ -125,6 +125,9 @@ function PlayState:update( dt )
 		-- remove dead pawns, i guess?
 		for k, v in pairs( self.pawn_list ) do
 			if not v.alive then
+				if self.current_map:delete_pawn( v.x, v.y ) ~= k then
+					error("oh my god, we've killed the wrong man")
+				end
 				self.pawn_list[k] = nil
 			end
 		end
@@ -158,7 +161,7 @@ function PlayState:draw()
 	-- gui
 
 	-- debug msg
-	love.graphics.setColor( color.ltblue )
+	love.graphics.setColor( color.ltblue03 )
 	love.graphics.print( "Time: "..string.format("%.0f", self.game_frame / 60), 2, 2 )
 	love.graphics.setColor( color.white )
 	if self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then

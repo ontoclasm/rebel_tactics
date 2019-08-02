@@ -24,6 +24,10 @@ font = love.graphics.newImageFont("assets/img/font.png",
 		"123456789.,!?-+/():;%&`'*#=[]\"|_")
 
 -- constants
+TILE_SIZE = 32
+TILE_SIZE_HALF = TILE_SIZE / 2
+TILE_SIZE_QUARTER = TILE_SIZE / 4
+
 PI_2 = math.pi / 2
 PI = math.pi
 TAU = math.pi * 2

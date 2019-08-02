@@ -20,16 +20,16 @@ function AimingState:update( playstate, dt )
 	end
 
 	if controller:pressed( 'r_left' ) then
-		camera.shift_target( -24, 0 )
+		camera.shift_target( -TILE_SIZE, 0 )
 	end
 	if controller:pressed( 'r_right' ) then
-		camera.shift_target( 24, 0 )
+		camera.shift_target( TILE_SIZE, 0 )
 	end
 	if controller:pressed( 'r_up' ) then
-		camera.shift_target( 0, -24 )
+		camera.shift_target( 0, -TILE_SIZE )
 	end
 	if controller:pressed( 'r_down' ) then
-		camera.shift_target( 0, 24 )
+		camera.shift_target( 0, TILE_SIZE )
 	end
 
 	if controller:pressed( 'r1' ) then
