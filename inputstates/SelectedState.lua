@@ -110,11 +110,14 @@ function SelectedState:draw( playstate )
 
 	-- draw mouse cursor
 	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
-		love.graphics.setColor(color.rouge)
-		img.draw_to_grid("cursor_mouse", playstate.mouse_x, playstate.mouse_y)
+		if pathfinder.on and pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] then
+			img.set_color_by_energy( pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] )
+		else
+			love.graphics.setColor(color.white)
+		end
 
-		-- love.graphics.setColor(color.rouge)
-		-- love.graphics.draw(img.tileset, img.tile["cursor_mouse"], camera.screen_point_from_grid_point(playstate.mouse_x, playstate.mouse_y))
+		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
+		img.draw_to_grid("cursor_corners", playstate.mouse_x, playstate.mouse_y)
 	end
 
 	-- -- draw FOV
@@ -131,7 +134,7 @@ function SelectedState:draw( playstate )
 			for h, _ in pairs( pathfinder.fringes ) do
 				x, y = grid.unhash( h )
 				img.set_color_by_energy( pathfinder.energies[ h ] )
-				img.draw_to_grid("cursor_mouse", x, y)
+				img.draw_to_grid("cursor_base", x, y)
 			end
 
 			local path = pathfinder:path_to( grid.unhash( pathfinder.debug_last_h ) )
