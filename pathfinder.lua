@@ -131,8 +131,8 @@ function pathfinder:get_actions_remaining(x,y)
 	local en = self.energies[ hash( x, y ) ]
 	if not en then
 		return -1
-	elseif en >= 1000000 then
-		return 2
+	-- elseif en >= 1000000 then
+	-- 	return 2
 	elseif en >= 1000 then
 		return 1
 	else

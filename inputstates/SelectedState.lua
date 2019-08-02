@@ -104,8 +104,31 @@ function SelectedState:draw( playstate )
 	love.graphics.setColor(color.white)
 
 	img.update_terrain_batches(playstate.current_map)
+	local elev, act
+	local neighborhood = {}
+	local nx, ny
 	for i = 1, img.NUM_TERRAIN_LAYERS do
 		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
+		--draw move radius
+		for x = 1, playstate.current_map.width do
+			for y = 1, playstate.current_map.height do
+				elev = playstate.current_map:get_block_elev( x, y )
+				if img.layer_from_elev( elev ) == i then
+					act = pathfinder:get_actions_remaining( x, y )
+					if act >= 0 then
+						img.set_color_by_actions( act )
+						neighborhood = {}
+						for dir = 1, 8 do
+							nx, ny = grid.neighbor(x,y,dir)
+							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+						end
+						img.draw_region_tile("region_move", x, y, neighborhood)
+						-- img.draw_to_grid("dot", x, y)
+					end
+				end
+			end
+		end
+		love.graphics.setColor(color.white)
 	end
 
 	-- -- draw FOV
@@ -136,6 +159,12 @@ function SelectedState:draw( playstate )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
 				end
+
+				for i = 2, #path do
+					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i ] ) ) )
+					a, b = grid.unhash( path[ i ] )
+					img.draw_to_grid("dot", a, b)
+				end
 			end
 		elseif not playstate.animating then
 			local path = pathfinder:path_to( playstate.mouse_x, playstate.mouse_y )
@@ -149,24 +178,11 @@ function SelectedState:draw( playstate )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
 				end
-			end
-		end
 
-		local act
-		local neighborhood = {}
-		local nx, ny
-		for x = 1, playstate.current_map.width do
-			for y = 1, playstate.current_map.height do
-				act = pathfinder:get_actions_remaining( x, y )
-				if act >= 0 then
-					img.set_color_by_actions( act )
-					neighborhood = {}
-					for dir = 1, 8 do
-						nx, ny = grid.neighbor(x,y,dir)
-						table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) == act)
-					end
-					img.draw_region_tile("region_move", x, y, neighborhood)
-					-- img.draw_to_grid("dot", x, y)
+				for i = 2, #path do
+					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i ] ) ) )
+					a, b = grid.unhash( path[ i ] )
+					img.draw_to_grid("dot", a, b)
 				end
 			end
 		end
