@@ -162,7 +162,8 @@ function PlayState:draw()
 	love.graphics.print( "Time: "..string.format("%.0f", self.game_frame / 60), 2, 2 )
 	love.graphics.setColor( color.white )
 	if self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
-		love.graphics.print( "b: "..(self.current_map:get_block(self.mouse_x, self.mouse_y) or "x")..
+		local block, elev = self.current_map:get_block(self.mouse_x, self.mouse_y)
+		love.graphics.print( "block: "..(block or "x")..", elev: "..(elev or "x")..
 			", n: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "n") or "x")..
 			", w: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "w") or "x")..
 			", s: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "s") or "x")..
@@ -280,11 +281,7 @@ function PlayState:calculate_fov(ox, oy, vis_table)
 	-- visible from the given point
 	fov(ox,oy,28,
 		function(x, y, dir)	-- get_transparent_edge
-			if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
-				return false
-			else
-				return (self.current_map:get_edge(x, y, dir) ~= 99)
-			end
+			return self.current_map:edge_is_translucent(x,y,dir)
 		end,
 		function(x, y)	-- set_visible
 			vis_table[grid.hash(x,y)] = "c"

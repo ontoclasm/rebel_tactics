@@ -47,7 +47,7 @@ function pathfinder:build_move_radius( map, origin_x, origin_y, start_energy )
 		for dir = 1, 8 do
 			neighbor_x, neighbor_y = nbr( x, y, dir )
 			if map:in_bounds( neighbor_x, neighbor_y ) then
-				cost = map:move_cost( x, y, neighbor_x - x, neighbor_y - y )
+				cost = map:step_cost( x, y, neighbor_x - x, neighbor_y - y )
 				-- costs:
 				-- -1: can't step here
 				-- 1: normal step
@@ -205,7 +205,7 @@ function pathfinder:build_move_radius_debug_step( map )
 	for dir = 1, 8 do
 		neighbor_x, neighbor_y = nbr( x, y, dir )
 		if map:in_bounds( neighbor_x, neighbor_y ) then
-			cost = map:move_cost( x, y, neighbor_x - x, neighbor_y - y )
+			cost = map:step_cost( x, y, neighbor_x - x, neighbor_y - y )
 			-- costs:
 			-- -1: can't step here
 			-- 1: normal step
