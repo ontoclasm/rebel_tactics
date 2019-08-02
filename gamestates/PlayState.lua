@@ -42,7 +42,7 @@ function PlayState:enter()
 	self.mouse_fov_is_dirty = true
 	self.visible_tiles = nil
 
-	img.tileset_batch_is_dirty = true
+	img.tileset_batches_are_dirty = true
 end
 
 function PlayState:update( dt )

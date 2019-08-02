@@ -22,7 +22,21 @@ function grid.orth_dir_from_delta( dx, dy )
 	elseif dx == 0 and dy == -1 then
 		return "n"
 	else
-		error("bad dir: "..dx..", "..dy)
+		error("bad delta: "..dx..", "..dy)
+	end
+end
+
+function grid.delta_from_orth_dir( dir )
+	if dir == "e" then
+		return 1,0
+	elseif dir == "w" then
+		return -1,0
+	elseif dir == "s" then
+		return 0,1
+	elseif dir == "n" then
+		return 0,-1
+	else
+		error("bad dir: "..dir)
 	end
 end
 

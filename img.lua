@@ -134,11 +134,38 @@ function img.update_terrain_batches(map)
 end
 
 local px, py
-function img.draw_to_grid(tilename, x, y, offset_x, offset_y)
+function img.draw_to_grid(tilename, x, y, offset_x, offset_y, rotation)
 	px, py = camera.screen_point_from_grid_point(x, y)
 	px = px + (offset_x or 0)
 	py = py + (offset_y or 0)
-	love.graphics.draw(img.tileset, img.tile[tilename], px, py, 0, 1, 1, TILE_CENTER, TILE_CENTER)
+	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_CENTER, TILE_CENTER)
+end
+
+function img.draw_cover(x,y,map)
+	local cover = map:get_cover(x, y, "n")
+	if cover == 2 then
+		img.draw_to_grid("cursor_hard_cover_n", x, y, 0, 0, 0)
+	elseif cover == 1 then
+		img.draw_to_grid("cursor_soft_cover_n", x, y, 0, 0, 0)
+	end
+	cover = map:get_cover(x, y, "s")
+	if cover == 2 then
+		img.draw_to_grid("cursor_hard_cover_n", x, y, 0, 0, math.pi)
+	elseif cover == 1 then
+		img.draw_to_grid("cursor_soft_cover_n", x, y, 0, 0, math.pi)
+	end
+	cover = map:get_cover(x, y, "e")
+	if cover == 2 then
+		img.draw_to_grid("cursor_hard_cover_n", x, y, 0, 0, PI_2)
+	elseif cover == 1 then
+		img.draw_to_grid("cursor_soft_cover_n", x, y, 0, 0, PI_2)
+	end
+	cover = map:get_cover(x, y, "w")
+	if cover == 2 then
+		img.draw_to_grid("cursor_hard_cover_n", x, y, 0, 0, 1.5 * math.pi)
+	elseif cover == 1 then
+		img.draw_to_grid("cursor_soft_cover_n", x, y, 0, 0, 1.5 * math.pi)
+	end
 end
 
 function img.set_color_by_energy( en )

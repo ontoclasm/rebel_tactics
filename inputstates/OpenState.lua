@@ -32,6 +32,8 @@ function OpenState:update( playstate )
 			playstate.selected_pawn = pid
 			self.manager:switch_to("Selected")
 		end
+	elseif controller:pressed( 'x' ) then
+		self.debug_cover = not self.debug_cover
 	end
 end
 
@@ -48,6 +50,16 @@ function OpenState:draw( playstate )
 		love.graphics.setColor(color.white)
 		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
 		img.draw_to_grid("cursor_corners", playstate.mouse_x, playstate.mouse_y)
+	end
+
+	-- draw cover
+	if self.debug_cover then
+		love.graphics.setColor(color.yellow)
+		for x = 1, playstate.current_map.width do
+			for y = 1, playstate.current_map.height do
+				img.draw_cover(x,y,playstate.current_map)
+			end
+		end
 	end
 
 	-- draw pawns

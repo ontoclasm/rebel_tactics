@@ -262,6 +262,29 @@ function Map:can_lean_east(x,y)
 	end
 end
 
+function Map:get_cover(x,y,dir)
+	-- 0: no cover
+	-- 1: soft cover
+	-- 2: hard cover
+	local dx, dy = grid.delta_from_orth_dir( dir )
+	if not self:in_bounds(x+dx, y+dy) then
+		return 2
+	else
+		local this, this_elev = self:get_block(x,y)
+		local adj, adj_elev = self:get_block(x+dx,y+dy)
+		local elev_diff = adj_elev - this_elev
+		if elev_diff >= 20 then
+			return 2
+		elseif elev_diff >= 10 then
+			local edge, _ = self:get_edge(x,y,dir)
+			return edge and edge_data[edge].cover_when_above or 1
+		else
+			local edge, _ = self:get_edge(x,y,dir)
+			return edge and edge_data[edge].cover_when_level or 0
+		end
+	end
+end
+
 function Map:step_cost( from_x, from_y, dx, dy )
 	-- XXX rewrite
 
@@ -346,12 +369,10 @@ function Map:fill_debug()
 		for x = corner_x, corner_x + room_width do
 			for y = corner_y, corner_y + room_height do
 				local roll = love.math.random( 1, 100 )
-				if roll > 20 then
+				if roll > 10 then
 					self:set_block(x, y, 10, 10)
-				elseif roll > 5 then
-					self:set_block(x, y, 10, 20)
 				else
-					self:set_block(x, y, 10, 30)
+					self:set_block(x, y, 10, 20)
 				end
 			end
 		end
@@ -363,9 +384,9 @@ function Map:fill_debug()
 		for x = corner_x, corner_x + room_width do
 			for y = corner_y, corner_y + room_height do
 				local roll = love.math.random( 1, 100 )
-				if roll > 20 then
+				if roll > 10 then
 					self:set_block(x, y, 10, 20)
-				elseif roll > 10 then
+				elseif roll > 5 then
 					self:set_block(x, y, 10, 10)
 				else
 					self:set_block(x, y, 10, 30)
@@ -380,12 +401,10 @@ function Map:fill_debug()
 		for x = corner_x, corner_x + room_width do
 			for y = corner_y, corner_y + room_height do
 				local roll = love.math.random( 1, 100 )
-				if roll > 20 then
+				if roll > 10 then
 					self:set_block(x, y, 10, 30)
-				elseif roll > 5 then
-					self:set_block(x, y, 10, 20)
 				else
-					self:set_block(x, y, 10, 10)
+					self:set_block(x, y, 10, 20)
 				end
 			end
 		end

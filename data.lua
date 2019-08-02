@@ -34,6 +34,8 @@ edge_data = {
 		translucent = true,
 		permeable = true,
 		elev = 10,
+		cover_when_level = 1,
+		cover_when_above = 2,
 
 		tile = "edge_thin",
 		colors = {
@@ -50,6 +52,8 @@ edge_data = {
 		translucent = true,
 		permeable = true,
 		elev = 20,
+		cover_when_level = 2,
+		cover_when_above = 2,
 
 		tile = "edge_thick",
 		colors = {
@@ -66,6 +70,8 @@ edge_data = {
 		translucent = false,
 		permeable = false,
 		elev = 999,
+		cover_when_level = 2,
+		cover_when_above = 2,
 
 		tile = "edge_thick",
 		colors = {
