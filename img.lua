@@ -1,5 +1,7 @@
 local img = {tile = {}}
 
+img.NUM_TERRAIN_LAYERS = 5
+
 function img.setup()
 	img.cursor = love.graphics.newImage("assets/img/cursor.png")
 
@@ -19,8 +21,12 @@ function img.setup()
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
 
-	img.tileset_batch = love.graphics.newSpriteBatch(img.tileset, 2 * (img.view_tilewidth + 1) * (img.view_tileheight + 1))
-	img.tileset_batch_is_dirty = true
+	img.tileset_batches = {}
+	for i = 1, img.NUM_TERRAIN_LAYERS do
+		img.tileset_batches[i] = love.graphics.newSpriteBatch(img.tileset, 2 * (img.view_tilewidth + 1) * (img.view_tileheight + 1))
+	end
+	-- img.tileset_batch = love.graphics.newSpriteBatch(img.tileset, 2 * (img.view_tilewidth + 1) * (img.view_tileheight + 1))
+	img.tileset_batches_are_dirty = true
 end
 
 function img.nq(name, imgx, imgy)
@@ -35,14 +41,16 @@ end
 
 local old_corner_x = -9999
 local old_corner_y = -9999
-function img.update_tileset_batch(map)
+function img.update_terrain_batches(map)
 	corner_x, corner_y = math.floor(camera.px/TILE_SIZE), math.floor(camera.py/TILE_SIZE)
 
 	-- rebuild the batch if we need to recenter it, or if the dirty flag is set
-	if img.tileset_batch_is_dirty or corner_x ~= old_corner_x or corner_y ~= old_corner_y then
-		img.tileset_batch:clear()
+	if img.tileset_batches_are_dirty or corner_x ~= old_corner_x or corner_y ~= old_corner_y then
+		for i = 1, img.NUM_TERRAIN_LAYERS do
+			img.tileset_batches[i]:clear()
+		end
 
-		local thing, thing_elev
+		local thing, thing_elev, layer
 
 		-- draw blocks
 		for x=0, img.view_tilewidth do
@@ -50,8 +58,9 @@ function img.update_tileset_batch(map)
 				if map:in_bounds(x + corner_x, y + corner_y) then
 					thing, thing_elev = map:get_block(x + corner_x, y + corner_y)
 					if thing then
-						img.tileset_batch:setColor(block_data[thing].colors[thing_elev] or block_data[thing].colors[-1])
-						img.tileset_batch:add(img.tile[block_data[thing].tile], x * TILE_SIZE, y * TILE_SIZE)
+						layer = img.layer_from_elev( thing_elev )
+						img.tileset_batches[layer]:setColor(block_data[thing].colors[thing_elev] or block_data[thing].colors[-1])
+						img.tileset_batches[layer]:add(img.tile[block_data[thing].tile], x * TILE_SIZE, y * TILE_SIZE)
 					end
 				end
 			end
@@ -63,14 +72,16 @@ function img.update_tileset_batch(map)
 				if map:in_bounds(x + corner_x, y + corner_y) then
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y, "n")
 					if thing then
-						img.tileset_batch:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batch:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - 4, y * TILE_SIZE - 4)
+						layer = img.layer_from_elev( thing_elev )
+						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - 4, y * TILE_SIZE - 4)
 					end
 				elseif map:in_bounds(x + corner_x, y + corner_y - 1) then -- southern edge
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y - 1, "s")
 					if thing then
-						img.tileset_batch:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batch:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - 4, y * TILE_SIZE - 4)
+						layer = img.layer_from_elev( thing_elev )
+						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - 4, y * TILE_SIZE - 4)
 					end
 				end
 			end
@@ -80,14 +91,16 @@ function img.update_tileset_batch(map)
 				if map:in_bounds(x + corner_x, y + corner_y) then
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y, "w")
 					if thing then
-						img.tileset_batch:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batch:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - 4, PI_2)
+						layer = img.layer_from_elev( thing_elev )
+						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - 4, PI_2)
 					end
 				elseif map:in_bounds(x + corner_x - 1, y + corner_y) then -- eastern edge
 					thing, thing_elev = map:get_edge(x + corner_x - 1, y + corner_y, "e")
 					if thing then
-						img.tileset_batch:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batch:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - 4, PI_2)
+						layer = img.layer_from_elev( thing_elev )
+						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - 4, PI_2)
 					end
 				end
 			end
@@ -106,12 +119,12 @@ function img.update_tileset_batch(map)
 		-- 	end
 		-- end
 
-		img.tileset_batch:setColor(color.white)
-
-		img.tileset_batch:flush()
+		for i = 1, img.NUM_TERRAIN_LAYERS do
+			img.tileset_batches[i]:setColor(color.white)
+		end
 
 		old_corner_x, old_corner_y = corner_x, corner_y
-		img.tileset_batch_is_dirty = false
+		img.tileset_batches_are_dirty = false
 	end
 end
 
@@ -147,23 +160,18 @@ function img.set_color_by_dir( dir )
 	end
 end
 
---
-
--- img.block_tile = {}
-
--- img.block_tile[ 1] = { "block", color.grey01 }
--- img.block_tile[ 2] = { "block", color.grey02 }
--- img.block_tile[ 3] = { "block", color.grey03 }
--- img.block_tile[99] = { "block", color.bg }
-
--- img.edge_tile = {}
-
--- img.edge_tile[ 3] = { "edge_thin", color.brown }
--- img.edge_tile[99] = { "edge_thick", color.grey06 }
-
--- img.cap_tile = {}
-
--- img.cap_tile[ 3] = { "cap_thin", color.brown }
--- img.cap_tile[99] = { "cap_thick", color.grey06 }
+function img.layer_from_elev( elev )
+	if elev < 10 then
+		return 1
+	elseif elev < 20 then
+		return 2
+	elseif elev < 30 then
+		return 3
+	elseif elev < 40 then
+		return 4
+	else
+		return 5
+	end
+end
 
 return img

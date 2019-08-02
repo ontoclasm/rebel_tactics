@@ -291,11 +291,7 @@ function PlayState:calculate_fov(ox, oy, vis_table)
 		-- lean south
 		fov(ox,oy+1,28,
 			function(x, y, dir)	-- get_transparent_edge
-				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
-					return false
-				else
-					return (self.current_map:get_edge(x, y, dir) ~= 99)
-				end
+				return self.current_map:edge_is_translucent(x,y,dir)
 			end,
 			function(x, y)	-- set_visible
 				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "s"
@@ -306,11 +302,7 @@ function PlayState:calculate_fov(ox, oy, vis_table)
 		-- lean north
 		fov(ox,oy-1,28,
 			function(x, y, dir)	-- get_transparent_edge
-				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
-					return false
-				else
-					return (self.current_map:get_edge(x, y, dir) ~= 99)
-				end
+				return self.current_map:edge_is_translucent(x,y,dir)
 			end,
 			function(x, y)	-- set_visible
 				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "n"
@@ -321,11 +313,7 @@ function PlayState:calculate_fov(ox, oy, vis_table)
 		-- lean west
 		fov(ox-1,oy,28,
 			function(x, y, dir)	-- get_transparent_edge
-				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
-					return false
-				else
-					return (self.current_map:get_edge(x, y, dir) ~= 99)
-				end
+				return self.current_map:edge_is_translucent(x,y,dir)
 			end,
 			function(x, y)	-- set_visible
 				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "w"
@@ -336,11 +324,7 @@ function PlayState:calculate_fov(ox, oy, vis_table)
 		-- lean east
 		fov(ox+1,oy,28,
 			function(x, y, dir)	-- get_transparent_edge
-				if not self.current_map:in_bounds(x,y) or self.current_map:get_block(x,y) == 99 then
-					return false
-				else
-					return (self.current_map:get_edge(x, y, dir) ~= 99)
-				end
+				return self.current_map:edge_is_translucent(x,y,dir)
 			end,
 			function(x, y)	-- set_visible
 				vis_table[grid.hash(x,y)] = vis_table[grid.hash(x,y)] or "e"

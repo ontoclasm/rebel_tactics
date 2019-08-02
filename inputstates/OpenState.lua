@@ -38,8 +38,10 @@ end
 function OpenState:draw( playstate )
 	love.graphics.setColor(color.white)
 
-	img.update_tileset_batch(playstate.current_map)
-	love.graphics.draw(img.tileset_batch, -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
+	img.update_terrain_batches(playstate.current_map)
+	for i = , img.NUM_TERRAIN_LAYERS do
+		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
+	end
 
 	-- draw mouse cursor
 	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
