@@ -1,6 +1,6 @@
 local img = {tile = {}}
 
-img.NUM_TERRAIN_LAYERS = 5
+img.NUM_TERRAIN_LAYERS = 7
 
 function img.setup()
 	img.cursor = love.graphics.newImage("assets/img/cursor.png")
@@ -169,8 +169,12 @@ function img.layer_from_elev( elev )
 		return 3
 	elseif elev < 40 then
 		return 4
-	else
+	elseif elev < 50 then
 		return 5
+	elseif elev < 60 then
+		return 6
+	else
+		return 7
 	end
 end
 
