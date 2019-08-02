@@ -127,6 +127,19 @@ function pathfinder:path_to( target_x, target_y )
 	end
 end
 
+function pathfinder:get_actions_remaining(x,y)
+	local en = self.energies[ hash( x, y ) ]
+	if not en then
+		return -1
+	elseif en >= 1000000 then
+		return 2
+	elseif en >= 1000 then
+		return 1
+	else
+		return 0
+	end
+end
+
 -- function pathfinder:display_move_radius()
 -- 	local c
 -- 	for k = 0, self.radius do

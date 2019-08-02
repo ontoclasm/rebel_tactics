@@ -108,29 +108,6 @@ function SelectedState:draw( playstate )
 		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 	end
 
-	-- draw mouse cursor
-	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
-		if pathfinder.on and pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] then
-			img.set_color_by_energy( pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] )
-		else
-			love.graphics.setColor(color.white)
-		end
-
-		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
-
-		for dx = -3, 3 do
-			for dy = -3, 3 do
-				if playstate.current_map:in_bounds(playstate.mouse_x + dx, playstate.mouse_y + dy) then
-					love.graphics.setColor(0.80, 0.70, 0.10, (math.max(math.abs(dx),math.abs(dy))) == 3 and 0.5 or 1)
-					local b = playstate.current_map:get_block_kind(playstate.mouse_x + dx, playstate.mouse_y + dy)
-					if b and block_data[b].floor then
-						img.draw_cover(playstate.mouse_x + dx, playstate.mouse_y + dy, playstate.current_map)
-					end
-				end
-			end
-		end
-	end
-
 	-- -- draw FOV
 	-- local x, y
 	-- for hash,v in pairs( playstate.visible_tiles ) do
@@ -144,7 +121,7 @@ function SelectedState:draw( playstate )
 		if pathfinder.debug_last_h then
 			for h, _ in pairs( pathfinder.fringes ) do
 				x, y = grid.unhash( h )
-				img.set_color_by_energy( pathfinder.energies[ h ] )
+				img.set_color_by_actions( pathfinder:get_actions_remaining(x, y) )
 				img.draw_to_grid("cursor_base", x, y)
 			end
 
@@ -152,7 +129,7 @@ function SelectedState:draw( playstate )
 			if path then
 				local a, b, c, d, en
 				for i = 1, #path - 1 do
-					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
+					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i+1 ] ) ) )
 					a, b = grid.unhash( path[ i ] )
 					c, d = grid.unhash( path[ i+1 ] )
 					a, b = camera.screen_point_from_grid_point( a, b )
@@ -165,7 +142,7 @@ function SelectedState:draw( playstate )
 			if path then
 				local a, b, c, d, en
 				for i = 1, #path - 1 do
-					img.set_color_by_energy( pathfinder.energies[ path[ i+1 ] ] )
+					img.set_color_by_actions( pathfinder:get_actions_remaining( grid.unhash( path[ i+1 ] ) ) )
 					a, b = grid.unhash( path[ i ] )
 					c, d = grid.unhash( path[ i+1 ] )
 					a, b = camera.screen_point_from_grid_point( a, b )
@@ -175,16 +152,24 @@ function SelectedState:draw( playstate )
 			end
 		end
 
-		-- local en
-		-- for x = 1, playstate.current_map.width do
-		-- 	for y = 1, playstate.current_map.height do
-		-- 		en = pathfinder.energies[ grid.hash( x, y ) ]
-		-- 		if en then
-		-- 			img.set_color_by_energy( en )
-		-- 			img.draw_to_grid("dot", x, y)
-		-- 		end
-		-- 	end
-		-- end
+		local act
+		local neighborhood = {}
+		local nx, ny
+		for x = 1, playstate.current_map.width do
+			for y = 1, playstate.current_map.height do
+				act = pathfinder:get_actions_remaining( x, y )
+				if act >= 0 then
+					img.set_color_by_actions( act )
+					neighborhood = {}
+					for dir = 1, 8 do
+						nx, ny = grid.neighbor(x,y,dir)
+						table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) == act)
+					end
+					img.draw_region_tile("region_move", x, y, neighborhood)
+					-- img.draw_to_grid("dot", x, y)
+				end
+			end
+		end
 	end
 
 	-- draw pawns
@@ -212,6 +197,29 @@ function SelectedState:draw( playstate )
 				end
 			end
 		end
+	end
+
+	-- draw mouse cursor
+	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
+		if pathfinder.on and pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] then
+			img.set_color_by_actions( pathfinder:get_actions_remaining(playstate.mouse_x, playstate.mouse_y) )
+		else
+			love.graphics.setColor(color.white)
+		end
+
+		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
+
+		-- for dx = -3, 3 do
+		-- 	for dy = -3, 3 do
+		-- 		if playstate.current_map:in_bounds(playstate.mouse_x + dx, playstate.mouse_y + dy) then
+		-- 			love.graphics.setColor(0.80, 0.70, 0.10, (math.max(math.abs(dx),math.abs(dy))) == 3 and 0.5 or 1)
+		-- 			local b = playstate.current_map:get_block_kind(playstate.mouse_x + dx, playstate.mouse_y + dy)
+		-- 			if b and block_data[b].floor then
+		-- 				img.draw_cover(playstate.mouse_x + dx, playstate.mouse_y + dy, playstate.current_map)
+		-- 			end
+		-- 		end
+		-- 	end
+		-- end
 	end
 
 	-- tiny.refresh(world)

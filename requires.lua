@@ -25,4 +25,5 @@ font = love.graphics.newImageFont("assets/img/font.png",
 
 -- constants
 PI_2 = math.pi / 2
+PI = math.pi
 TAU = math.pi * 2

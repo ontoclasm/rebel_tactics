@@ -40,7 +40,10 @@ function grid.delta_from_orth_dir( dir )
 	end
 end
 
--- offsets for neighbors, ccw from east
+-- offsets for neighbors, cw from east
+-- [6][7][8]
+-- [5]   [1]
+-- [4][3][2]
 dir_x = { 1,  1,  0, -1, -1, -1,  0,  1 }
 dir_y = { 0,  1,  1,  1,  0, -1, -1, -1 }
 

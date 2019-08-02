@@ -8,20 +8,22 @@ function img.setup()
 	img.tileset = love.graphics.newImage("assets/img/tileset.png")
 	img.tileset:setFilter("nearest", "linear")
 
-	img.nq("block",					 0,	 0)
-	img.nq("dot",					 1,	 0)
-	img.nq("hatching",				 2,	 0)
-	img.nq("pawn",					 0,	 1)
+	img.nq("block",							 0,	 0)
+	img.nq("dot",							 1,	 0)
+	img.nq("hatching",						 2,	 0)
+	img.nq("pawn",							 0,	 1)
 
-	img.nq("cursor_base",			 0,	 2)
-	img.nq("cursor_corners",		 1,	 2)
-	img.nq("cursor_hard_cover_n",	 2,	 2)
-	img.nq("cursor_soft_cover_n",	 3,	 2)
-	img.nq("cursor_circle",			 4,	 2)
+	img.nq("cursor_base",					 0,	 2)
+	img.nq("cursor_corners",				 1,	 2)
+	img.nq("cursor_hard_cover_n",			 2,	 2)
+	img.nq("cursor_soft_cover_n",			 3,	 2)
+	img.nq("cursor_circle",					 4,	 2)
 
-	img.nq_edge("edge_thick",		 0,	 0)
-	img.nq_edge("edge_thin",		 1,	 0)
-	img.nq_edge("edge_dotted",		 2,	 0)
+	img.nq_region("region_move",			 0,	 6)
+
+	img.nq_edge("edge_thick",				 0,	 0)
+	img.nq_edge("edge_thin",				 1,	 0)
+	img.nq_edge("edge_dotted",				 2,	 0)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
@@ -42,6 +44,17 @@ end
 function img.nq_edge(name, imgx, imgy)
 	img.tile[name] = love.graphics.newQuad(imgx * 32, 168 + imgy * 8, 32, 8,
 										   img.tileset:getWidth(), img.tileset:getHeight())
+end
+
+function img.nq_region(name, imgx, imgy)
+	img.tile[name.."_ec"] = love.graphics.newQuad(imgx * TILE_SIZE, imgy * TILE_SIZE, TILE_SIZE / 2, TILE_SIZE / 2,
+												  img.tileset:getWidth(), img.tileset:getHeight())
+	img.tile[name.."_fe"] = love.graphics.newQuad((imgx+0.5) * TILE_SIZE, imgy * TILE_SIZE, TILE_SIZE / 2, TILE_SIZE / 2,
+												  img.tileset:getWidth(), img.tileset:getHeight())
+	img.tile[name.."_ic"] = love.graphics.newQuad(imgx * TILE_SIZE, (imgy+0.5) * TILE_SIZE, TILE_SIZE / 2, TILE_SIZE / 2,
+												  img.tileset:getWidth(), img.tileset:getHeight())
+	img.tile[name.."_in"] = love.graphics.newQuad((imgx+0.5) * TILE_SIZE, (imgy+0.5) * TILE_SIZE, TILE_SIZE / 2, TILE_SIZE / 2,
+												  img.tileset:getWidth(), img.tileset:getHeight())
 end
 
 local old_corner_x = -9999
@@ -141,7 +154,92 @@ function img.draw_to_grid(tilename, x, y, offset_x, offset_y, rotation)
 	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_CENTER, TILE_CENTER)
 end
 
-function img.draw_cover(x,y,map)
+function img.draw_region_tile(name, x, y, neighborhood )
+	-- neighborhood:
+	-- [6][7][8]
+	-- [5]   [1]
+	-- [4][3][2]
+
+	px, py = camera.screen_point_from_grid_point(x, y)
+
+	-- top left
+	if neighborhood[5] then
+		if neighborhood[7] then
+			if neighborhood[6] then
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px - 6, py - 6, 0, 1, 1, 6, 6)
+			else
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px - 6, py - 6, 0, 1, 1, 6, 6)
+			end
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py - 6, 0, 1, 1, 6, 6)
+		end
+	else
+		if neighborhood[7] then
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py - 6, -PI_2, 1, 1, 6, 6)
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px - 6, py - 6, 0, 1, 1, 6, 6)
+		end
+	end
+
+	-- top right
+	if neighborhood[1] then
+		if neighborhood[7] then
+			if neighborhood[8] then
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px + 6, py - 6, 0, 1, 1, 6, 6)
+			else
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px + 6, py - 6, PI_2, 1, 1, 6, 6)
+			end
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py - 6, 0, 1, 1, 6, 6)
+		end
+	else
+		if neighborhood[7] then
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py - 6, PI_2, 1, 1, 6, 6)
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px + 6, py - 6, PI_2, 1, 1, 6, 6)
+		end
+	end
+
+	-- bottom left
+	if neighborhood[5] then
+		if neighborhood[3] then
+			if neighborhood[4] then
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px - 6, py + 6, 0, 1, 1, 6, 6)
+			else
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px - 6, py + 6, -PI_2, 1, 1, 6, 6)
+			end
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py + 6, PI, 1, 1, 6, 6)
+		end
+	else
+		if neighborhood[3] then
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px - 6, py + 6, -PI_2, 1, 1, 6, 6)
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px - 6, py + 6, -PI_2, 1, 1, 6, 6)
+		end
+	end
+
+	-- bottom right
+	if neighborhood[1] then
+		if neighborhood[3] then
+			if neighborhood[2] then
+				love.graphics.draw(img.tileset, img.tile[name.."_in"], px + 6, py + 6, 0, 1, 1, 6, 6)
+			else
+				love.graphics.draw(img.tileset, img.tile[name.."_ic"], px + 6, py + 6, PI, 1, 1, 6, 6)
+			end
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py + 6, PI, 1, 1, 6, 6)
+		end
+	else
+		if neighborhood[3] then
+			love.graphics.draw(img.tileset, img.tile[name.."_fe"], px + 6, py + 6, PI_2, 1, 1, 6, 6)
+		else
+			love.graphics.draw(img.tileset, img.tile[name.."_ec"], px + 6, py + 6, PI, 1, 1, 6, 6)
+		end
+	end
+end
+
+function img.draw_cover( x, y, map )
 	local cover = map:get_cover(x, y, "n")
 	if cover == 2 then
 		img.draw_to_grid("cursor_hard_cover_n", x, y, 0, 0, 0)
@@ -168,13 +266,15 @@ function img.draw_cover(x,y,map)
 	end
 end
 
-function img.set_color_by_energy( en )
-	if en >= 1000000 then
+function img.set_color_by_actions( act )
+	if act >= 2 then
 		love.graphics.setColor( color.white )
-	elseif en >= 1000 then
+	elseif act == 1 then
 		love.graphics.setColor( color.ltblue )
-	else
+	elseif act == 0 then
 		love.graphics.setColor( color.orange )
+	else
+		love.graphics.setColor( color.rouge )
 	end
 end
 
