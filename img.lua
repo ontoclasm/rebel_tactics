@@ -11,13 +11,17 @@ function img.setup()
 	img.nq("block",							 0,	 0)
 	img.nq("dot",							 1,	 0)
 	img.nq("hatching",						 2,	 0)
+	img.nq("hatching_half",					 3,	 0)
 	img.nq("pawn",							 0,	 1)
 
 	img.nq("cursor_base",					 0,	 2)
-	img.nq("cursor_corners",				 1,	 2)
-	img.nq("cursor_hard_cover_n",			 2,	 2)
-	img.nq("cursor_soft_cover_n",			 3,	 2)
-	img.nq("cursor_circle",					 4,	 2)
+	img.nq("cursor_corners_medium",			 1,	 2)
+	img.nq("cursor_corners_small",			 2,	 2)
+	img.nq("cursor_hard_cover_n",			 3,	 2)
+	img.nq("cursor_soft_cover_n",			 4,	 2)
+	img.nq("cursor_circle_large",			 5,	 2)
+	img.nq("cursor_circle_small",			 6,	 2)
+	img.nq("cursor_crosshairs",				 7,	 2)
 
 	img.nq_region("region_move",			 0,	 6)
 
@@ -152,6 +156,13 @@ function img.draw_to_grid(tilename, x, y, offset_x, offset_y, rotation)
 	px = px + (offset_x or 0)
 	py = py + (offset_y or 0)
 	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_SIZE_HALF, TILE_SIZE_HALF)
+end
+
+function img.draw_to_grid_edge(tilename, x, y, offset_x, offset_y, rotation)
+	px, py = camera.screen_point_from_grid_point(x, y)
+	px = px + (offset_x or 0)
+	py = py + (offset_y or 0)
+	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_SIZE_HALF + TILE_SIZE_QUARTER, TILE_SIZE_HALF + 4)
 end
 
 function img.draw_region_tile(name, x, y, neighborhood )

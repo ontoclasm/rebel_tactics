@@ -35,7 +35,11 @@ function love.load()
 end
 
 function love.update( dt )
-	gamestate.state:update( dt )
+	local next_state = gamestate.state:update( dt )
+	while next_state do
+		gamestate:switch_to(next_state)
+		next_state = gamestate.state:update( 0 )
+	end
 end
 
 function love.draw()

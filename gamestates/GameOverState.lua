@@ -10,6 +10,8 @@ end
 -- end
 
 function GameOverState:update(dt)
+	local next_state = nil
+
 	gui_frame = gui_frame + 1
 
 	-- handle input
@@ -17,8 +19,10 @@ function GameOverState:update(dt)
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 
 	if controller:pressed('r1') or controller:pressed('view') or controller:pressed('menu') then
-		self.manager.switch_to("Splash")
+		next_state = "Splash"
 	end
+
+	return next_state
 end
 
 function GameOverState:draw()

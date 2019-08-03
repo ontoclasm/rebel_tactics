@@ -10,6 +10,8 @@ end
 -- end
 
 function OpenState:update( playstate )
+	local next_input_state = nil
+
 	if controller:pressed( 'r_left' ) then
 		camera.shift_target( -TILE_SIZE, 0 )
 	end
@@ -23,18 +25,20 @@ function OpenState:update( playstate )
 		camera.shift_target( 0, TILE_SIZE )
 	end
 
-	if controller:pressed( 'r1' ) then
+	if controller:pressed( 'r1' ) and playstate.current_map:in_bounds( playstate.mouse_x, playstate.mouse_y ) then
 		local pid = playstate.current_map:get_pawn( playstate.mouse_x, playstate.mouse_y )
 		if pid then
 			if not playstate.pawn_list[pid] then
 				error()
 			end
 			playstate.selected_pawn = pid
-			self.manager:switch_to("Selected")
+			next_input_state = "Selected"
 		end
 	elseif controller:pressed( 'x' ) then
 		self.debug_cover = not self.debug_cover
 	end
+
+	return next_input_state
 end
 
 function OpenState:draw( playstate )
@@ -48,8 +52,11 @@ function OpenState:draw( playstate )
 	-- draw mouse cursor
 	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
 		love.graphics.setColor(color.white)
-		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
-		img.draw_to_grid("cursor_corners", playstate.mouse_x, playstate.mouse_y)
+		if playstate.current_map:get_pawn(playstate.mouse_x, playstate.mouse_y) then
+			img.draw_to_grid("cursor_corners_medium", playstate.mouse_x, playstate.mouse_y)
+		else
+			img.draw_to_grid("cursor_corners_small", playstate.mouse_x, playstate.mouse_y)
+		end
 	end
 
 	-- draw cover

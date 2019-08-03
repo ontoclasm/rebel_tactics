@@ -46,6 +46,8 @@ function PlayState:enter()
 end
 
 function PlayState:update( dt )
+	local next_state = nil
+
 	gui_frame = gui_frame + 1
 
 	-- handle input
@@ -79,7 +81,12 @@ function PlayState:update( dt )
 		-- 	self.old_mouse_x, self.old_mouse_y = self.mouse_x, self.mouse_y
 		-- end
 
-		self.input_state.state:update( self, dt )
+
+		local next_input_state = self.input_state.state:update( self, dt )
+		while next_input_state do
+			self.input_state:switch_to(next_input_state)
+			next_input_state = self.input_state.state:update( self, 0 )
+		end
 
 		if self.animating then
 			if self.current_animation then
@@ -143,9 +150,11 @@ function PlayState:update( dt )
 			self:unpause()
 		end
 		if controller:pressed( 'view' ) then
-			self.manager:switch_to( "Splash" )
+			next_state = "Splash"
 		end
 	end
+
+	return next_state
 end
 
 function PlayState:draw()

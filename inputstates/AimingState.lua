@@ -12,6 +12,8 @@ function AimingState:enter()
 end
 
 function AimingState:update( playstate, dt )
+	local next_input_state = nil
+
 	local p = playstate:get_selected_pawn()
 	if not self.visible_tiles then
 		--calculate FOV
@@ -32,21 +34,21 @@ function AimingState:update( playstate, dt )
 		camera.shift_target( 0, TILE_SIZE )
 	end
 
-	if controller:pressed( 'r1' ) then
+	if controller:pressed( 'r1' ) and playstate.current_map:in_bounds( playstate.mouse_x, playstate.mouse_y ) then
 		local pid = playstate.current_map:get_pawn( playstate.mouse_x, playstate.mouse_y )
 		if not pid then
 			-- unselect
 			playstate.selected_pawn = nil
-			self.manager:switch_to("Open")
+			next_input_state = "Open"
 		elseif pid ~= playstate.selected_pawn then
 			if not playstate.pawn_list[pid] then
 				error()
 			end
 			playstate.selected_pawn = pid
-			self.manager:switch_to("Selected")
+			next_input_state = "Selected"
 		end
 	elseif controller:pressed( 'b' ) then
-		self.manager:switch_to("Selected")
+		next_input_state = "Selected"
 	elseif not playstate.animating then
 		-- enact orders
 		if controller:pressed( 'r2' ) and p.actions >= 1 and self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
@@ -56,16 +58,18 @@ function AimingState:update( playstate, dt )
 				p.actions = p.actions - 1
 				playstate.pawn_list[target].alive = false
 				if p.actions > 0 then
-					self.manager:switch_to("Selected")
+					next_input_state = "Selected"
 				else
 					local next = playstate:get_next_pawn()
 					playstate.selected_pawn = next.id
 					camera.set_target_by_grid_point(next.x, next.y)
-					self.manager:switch_to("Selected")
+					next_input_state = "Selected"
 				end
 			end
 		end
 	end
+
+	return next_input_state
 end
 
 function AimingState:draw( playstate )
@@ -74,13 +78,21 @@ function AimingState:draw( playstate )
 	img.update_terrain_batches(playstate.current_map)
 	for i = 1, img.NUM_TERRAIN_LAYERS do
 		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
-	end
 
-	-- draw mouse cursor
-	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
-		love.graphics.setColor(color.rouge)
-		img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
-		img.draw_to_grid("cursor_corners", playstate.mouse_x, playstate.mouse_y)
+		-- draw FoV
+		if self.visible_tiles then
+			local b, b_elev
+			love.graphics.setColor(color.blood)
+			for x = 1, playstate.current_map.width do
+				for y = 1, playstate.current_map.height do
+					b, b_elev = playstate.current_map:get_block( x, y )
+					if b ~= 999 and not self.visible_tiles[grid.hash(x,y)] and img.layer_from_elev( b_elev) == i then
+						img.draw_to_grid("hatching", x, y)
+					end
+				end
+			end
+			love.graphics.setColor(color.white)
+		end
 	end
 
 	if self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
@@ -107,15 +119,15 @@ function AimingState:draw( playstate )
 		-- love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
 	end
 
-	-- draw FoV
-	if self.visible_tiles then
-		love.graphics.setColor(color.bg)
-		for x = 1, playstate.current_map.width do
-			for y = 1, playstate.current_map.height do
-				if not self.visible_tiles[grid.hash(x,y)] then
-					img.draw_to_grid("hatching", x, y)
-				end
-			end
+	if self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
+		love.graphics.setColor(color.rouge)
+		img.draw_to_grid("cursor_crosshairs", playstate.mouse_x, playstate.mouse_y)
+	elseif playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
+		love.graphics.setColor(color.white)
+		if playstate.current_map:get_pawn(playstate.mouse_x, playstate.mouse_y) then
+			img.draw_to_grid("cursor_corners_medium", playstate.mouse_x, playstate.mouse_y)
+		else
+			img.draw_to_grid("cursor_corners_small", playstate.mouse_x, playstate.mouse_y)
 		end
 	end
 

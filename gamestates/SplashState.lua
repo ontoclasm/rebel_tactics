@@ -10,6 +10,8 @@ end
 -- end
 
 function SplashState:update(dt)
+	local next_state = nil
+
 	gui_frame = gui_frame + 1
 
 	-- handle input
@@ -17,10 +19,12 @@ function SplashState:update(dt)
 	mouse_sx, mouse_sy = love.mouse.getPosition()
 
 	if controller:pressed('r1') then
-		self.manager:switch_to("Play")
+		next_state = "Play"
 	elseif controller:pressed('view') or controller:pressed('menu') then
 		love.event.push("quit")
 	end
+
+	return next_state
 end
 
 function SplashState:draw()
