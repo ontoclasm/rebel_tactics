@@ -61,7 +61,7 @@ function OpenState:draw( playstate )
 
 	-- draw cover
 	if self.debug_cover then
-		love.graphics.setColor(color.yellow)
+		love.graphics.setColor(color.white)
 		for x = 1, playstate.current_map.width do
 			for y = 1, playstate.current_map.height do
 				img.draw_cover(x,y,playstate.current_map)

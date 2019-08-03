@@ -107,6 +107,8 @@ end
 function SelectedState:draw( playstate )
 	love.graphics.setColor(color.white)
 
+	local p = playstate:get_selected_pawn()
+
 	img.update_terrain_batches(playstate.current_map)
 	local elev, nbr_elev, act, nbr_act
 	local neighborhood = {}
@@ -225,7 +227,7 @@ function SelectedState:draw( playstate )
 			for h, _ in pairs( pathfinder.fringes ) do
 				x, y = grid.unhash( h )
 				love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining(x, y), playstate.current_map:get_block_elev( x, y ) ) ] )
-				img.draw_to_grid("dot", x, y)
+				img.draw_to_grid("cursor_base", x, y)
 			end
 
 			local path = pathfinder:path_to( grid.unhash( pathfinder.debug_last_h ) )
@@ -268,19 +270,16 @@ function SelectedState:draw( playstate )
 		end
 	end
 
+	-- draw cover for the selected pawn?
+	-- love.graphics.setColor(color["yellow"..img.color_suffix_from_elev(playstate.current_map:get_block_elev(p.x,p.y))])
+	-- img.draw_cover(p.x, p.y, playstate.current_map)
+
 	-- draw pawns
 	for _, p in pairs(playstate.pawn_list) do
 		-- xxx cull off-screens?
 		love.graphics.setColor((p.id == playstate.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - self.start_frame) / 15))
 			or p.color)
 		img.draw_to_grid("pawn", p.x, p.y, p.offset_x, p.offset_y)
-
-		-- if p.id == playstate.selected_pawn then
-		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - playstate.selected_start_frame) / 15)))
-		-- else
-		-- 	love.graphics.setColor(p.color)
-		-- end
-		-- love.graphics.draw(img.tileset, img.tile["pawn"], camera.screen_point_from_grid_point(p.x, p.y))
 	end
 
 	-- draw FoV
@@ -305,19 +304,21 @@ function SelectedState:draw( playstate )
 				img.draw_to_grid("cursor_circle_small", playstate.mouse_x, playstate.mouse_y)
 			end
 
-			love.graphics.setColor(color.yellow04)
+			-- draw cover at mouse position
+			love.graphics.setColor(color.white)
 			img.draw_cover(playstate.mouse_x, playstate.mouse_y, playstate.current_map)
 
-			for i = 1, 8 do
-				nx, ny = grid.neighbor(playstate.mouse_x, playstate.mouse_y, i)
-				if playstate.current_map:in_bounds(nx, ny) then
-					local b, b_elev = playstate.current_map:get_block(nx, ny)
-					love.graphics.setColor(color["yellow"..img.color_suffix_from_elev(b_elev)])
-					if b and block_data[b].floor then
-						img.draw_cover(nx, ny, playstate.current_map)
-					end
-				end
-			end
+			-- ...and in the surrounding 8 tiles
+			-- for i = 1, 8 do
+			-- 	nx, ny = grid.neighbor(playstate.mouse_x, playstate.mouse_y, i)
+			-- 	if playstate.current_map:in_bounds(nx, ny) then
+			-- 		local b, b_elev = playstate.current_map:get_block(nx, ny)
+			-- 		love.graphics.setColor(color["yellow"..img.color_suffix_from_elev(b_elev)])
+			-- 		if b and block_data[b].floor then
+			-- 			img.draw_cover(nx, ny, playstate.current_map)
+			-- 		end
+			-- 	end
+			-- end
 		else
 			love.graphics.setColor(color.white)
 			-- img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)

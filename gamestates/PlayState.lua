@@ -103,13 +103,13 @@ function PlayState:update( dt )
 					self.current_map:move_pawn( self.current_animation.x1, self.current_animation.y1, self.current_animation.x2, self.current_animation.y2 )
 					p.x, p.y = self.current_animation.x2, self.current_animation.y2
 
-					self.current_animation.t = self.current_animation.t + 12 * dt
+					self.current_animation.t = self.current_animation.t + 8 * dt
 				elseif self.current_animation.t < 1 then
 					local p = self.pawn_list[self.current_animation.pid]
 					p.offset_x = mymath.abs_floor(TILE_SIZE * (self.current_animation.x1 - self.current_animation.x2) * (1 - self.current_animation.t))
 					p.offset_y = mymath.abs_floor(TILE_SIZE * (self.current_animation.y1 - self.current_animation.y2) * (1 - self.current_animation.t))
 
-					self.current_animation.t = self.current_animation.t + 12 * dt
+					self.current_animation.t = self.current_animation.t + 8 * dt
 				else
 					-- anim finished
 					local p = self.pawn_list[self.current_animation.pid]
