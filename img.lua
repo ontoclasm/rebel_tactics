@@ -281,9 +281,9 @@ function img.color_name_by_actions( act, elev )
 	if act >= 2 then
 		return "white"
 	elseif act == 1 then
-		return "ltblue"..img.color_suffix_from_elev(elev)
+		return "mvblue"..((elev and img.color_suffix_from_elev(elev)) or "06")
 	elseif act == 0 then
-		return "orange"..img.color_suffix_from_elev(elev)
+		return "mvorange"..((elev and img.color_suffix_from_elev(elev)) or "06")
 	else
 		return "oops"
 	end

@@ -113,81 +113,100 @@ function SelectedState:draw( playstate )
 	local nx, ny
 	for i = 1, img.NUM_TERRAIN_LAYERS do
 		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
-		--draw move radius
-		for x = 1, playstate.current_map.width do
-			for y = 1, playstate.current_map.height do
-				act = pathfinder:get_actions_remaining( x, y )
-				elev = playstate.current_map:get_block_elev( x, y )
-				if act >= 0 then
-					local act_color = color[img.color_name_by_actions( act, elev )]
-
-					-- love.graphics.setColor(act_color[1], act_color[2], act_color[3], 0.1)
-					-- if img.layer_from_elev( elev ) == i then
-					-- 	img.draw_to_grid( "block", x, y )
-					-- end
-
-					love.graphics.setColor(act_color)
-					-- north edge
-					if playstate.current_map:in_bounds( x, y-1 ) and not playstate.current_map:get_edge(x, y, "n") then
-						nbr_elev = playstate.current_map:get_block_elev( x, y-1 )
-						nbr_act = pathfinder:get_actions_remaining( x, y-1 )
-						if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
-							img.draw_to_grid_edge("edge_dotted", x, y)
-						end
-					end
-
-					-- south edge
-					if playstate.current_map:in_bounds( x, y+1 ) and not playstate.current_map:get_edge(x, y, "s") then
-						nbr_elev = playstate.current_map:get_block_elev( x, y+1 )
-						nbr_act = pathfinder:get_actions_remaining( x, y+1 )
-						if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
-							img.draw_to_grid_edge("edge_dotted", x, y, 0, 0, PI)
-						end
-					end
-
-					-- west edge
-					if playstate.current_map:in_bounds( x-1, y ) and not playstate.current_map:get_edge(x, y, "w") then
-						nbr_elev = playstate.current_map:get_block_elev( x-1, y )
-						nbr_act = pathfinder:get_actions_remaining( x-1, y )
-						if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
-							img.draw_to_grid_edge("edge_dotted", x, y, 0, 0, -PI_2)
-						end
-					end
-
-					-- east edge
-					if playstate.current_map:in_bounds( x+1, y ) and not playstate.current_map:get_edge(x, y, "e") then
-						nbr_elev = playstate.current_map:get_block_elev( x+1, y )
-						nbr_act = pathfinder:get_actions_remaining( x+1, y )
-						if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
-							img.draw_to_grid_edge("edge_dotted", x, y, 0, 0, PI_2)
-						end
-					end
-				elseif img.layer_from_elev( elev ) == i and playstate.current_map:get_block_kind(x,y) ~= 999 then
-					love.graphics.setColor(0,0,0,0.3)
-					img.draw_to_grid("hatching_half", x, y)
-				end
-			end
-		end
-
-		-- --draw move radius by region
+		--draw move radius by edges
 		-- for x = 1, playstate.current_map.width do
 		-- 	for y = 1, playstate.current_map.height do
+		-- 		act = pathfinder:get_actions_remaining( x, y )
 		-- 		elev = playstate.current_map:get_block_elev( x, y )
-		-- 		if img.layer_from_elev( elev ) == i then
-		-- 			act = pathfinder:get_actions_remaining( x, y )
-		-- 			if act >= 0 then
-		-- 				love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
-		-- 				neighborhood = {}
-		-- 				for dir = 1, 8 do
-		-- 					nx, ny = grid.neighbor(x,y,dir)
-		-- 					table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+		-- 		if act >= 0 then
+		-- 			local act_color = color[img.color_name_by_actions( act, elev )]
+
+		-- 			-- love.graphics.setColor(act_color[1], act_color[2], act_color[3], 0.1)
+		-- 			-- if img.layer_from_elev( elev ) == i then
+		-- 			-- 	img.draw_to_grid( "block", x, y )
+		-- 			-- end
+
+		-- 			love.graphics.setColor(act_color)
+		-- 			-- north edge
+		-- 			if playstate.current_map:in_bounds( x, y-1 ) and not playstate.current_map:get_edge(x, y, "n") then
+		-- 				nbr_elev = playstate.current_map:get_block_elev( x, y-1 )
+		-- 				nbr_act = pathfinder:get_actions_remaining( x, y-1 )
+		-- 				if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
+		-- 					img.draw_to_grid_edge("edge_dotted", x, y)
 		-- 				end
-		-- 				img.draw_region_tile("region_move", x, y, neighborhood)
-		-- 				-- img.draw_to_grid("dot", x, y)
 		-- 			end
+
+		-- 			-- south edge
+		-- 			if playstate.current_map:in_bounds( x, y+1 ) and not playstate.current_map:get_edge(x, y, "s") then
+		-- 				nbr_elev = playstate.current_map:get_block_elev( x, y+1 )
+		-- 				nbr_act = pathfinder:get_actions_remaining( x, y+1 )
+		-- 				if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
+		-- 					img.draw_to_grid_edge("edge_dotted", x, y, 0, 0, PI)
+		-- 				end
+		-- 			end
+
+		-- 			-- west edge
+		-- 			if playstate.current_map:in_bounds( x-1, y ) and not playstate.current_map:get_edge(x, y, "w") then
+		-- 				nbr_elev = playstate.current_map:get_block_elev( x-1, y )
+		-- 				nbr_act = pathfinder:get_actions_remaining( x-1, y )
+		-- 				if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
+		-- 					img.draw_to_grid_edge("edge_dotted", x, y, 0, 0, -PI_2)
+		-- 				end
+		-- 			end
+
+		-- 			-- east edge
+		-- 			if playstate.current_map:in_bounds( x+1, y ) and not playstate.current_map:get_edge(x, y, "e") then
+		-- 				nbr_elev = playstate.current_map:get_block_elev( x+1, y )
+		-- 				nbr_act = pathfinder:get_actions_remaining( x+1, y )
+		-- 				if nbr_elev <= elev and math.max(img.layer_from_elev( elev ) , img.layer_from_elev( nbr_elev )) == i-1 and act > nbr_act then
+		-- 					img.draw_to_grid_edge("edge_dotted", x, y, 0, 0, PI_2)
+		-- 				end
+		-- 			end
+		-- 		elseif img.layer_from_elev( elev ) == i and playstate.current_map:get_block_kind(x,y) ~= 999 then
+		-- 			love.graphics.setColor(0,0,0,0.3)
+		-- 			img.draw_to_grid("hatching_half", x, y)
 		-- 		end
 		-- 	end
 		-- end
+
+		--draw move radius by region
+		for x = 1, playstate.current_map.width do
+			for y = 1, playstate.current_map.height do
+				elev = playstate.current_map:get_block_elev( x, y )
+				if img.layer_from_elev( elev ) == i then
+					act = pathfinder:get_actions_remaining( x, y )
+					if act >= 1 then
+						-- draw orange first...
+						act = 0
+						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
+						neighborhood = {}
+						for dir = 1, 8 do
+							nx, ny = grid.neighbor(x,y,dir)
+							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+						end
+						img.draw_region_tile("region_move", x, y, neighborhood)
+
+						-- then blue
+						act = 1
+						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
+						neighborhood = {}
+						for dir = 1, 8 do
+							nx, ny = grid.neighbor(x,y,dir)
+							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+						end
+						img.draw_region_tile("region_move", x, y, neighborhood)
+					elseif act == 0 then
+						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
+						neighborhood = {}
+						for dir = 1, 8 do
+							nx, ny = grid.neighbor(x,y,dir)
+							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+						end
+						img.draw_region_tile("region_move", x, y, neighborhood)
+					end
+				end
+			end
+		end
 
 		love.graphics.setColor(color.white)
 	end
@@ -215,7 +234,7 @@ function SelectedState:draw( playstate )
 				for i = 1, #path - 1 do
 					a, b = grid.unhash( path[ i ] )
 					c, d = grid.unhash( path[ i+1 ] )
-					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( c, d ), 30 ) ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( c, d ) ) ] )
 					a, b = camera.screen_point_from_grid_point( a, b )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
@@ -223,7 +242,7 @@ function SelectedState:draw( playstate )
 
 				for i = 2, #path do
 					a, b = grid.unhash( path[ i ] )
-					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( a,b ), 30 ) ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( a,b ) ) ] )
 					img.draw_to_grid("dot", a, b)
 				end
 			end
@@ -234,7 +253,7 @@ function SelectedState:draw( playstate )
 				for i = 1, #path - 1 do
 					a, b = grid.unhash( path[ i ] )
 					c, d = grid.unhash( path[ i+1 ] )
-					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( c, d ), 30 ) ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( c, d ) ) ] )
 					a, b = camera.screen_point_from_grid_point( a, b )
 					c, d = camera.screen_point_from_grid_point( c, d )
 					love.graphics.line( a, b, c, d )
@@ -242,7 +261,7 @@ function SelectedState:draw( playstate )
 
 				for i = 2, #path do
 					a, b = grid.unhash( path[ i ] )
-					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( a,b ), 30 ) ] )
+					love.graphics.setColor( color[ img.color_name_by_actions( pathfinder:get_actions_remaining( a,b ) ) ] )
 					img.draw_to_grid("dot", a, b)
 				end
 			end
@@ -280,7 +299,7 @@ function SelectedState:draw( playstate )
 	if playstate.current_map:in_bounds(playstate.mouse_x, playstate.mouse_y) and playstate.current_map:get_block(playstate.mouse_x, playstate.mouse_y) ~= 99 then
 		local cursor_name
 		if pathfinder.on and pathfinder.energies[ grid.hash(playstate.mouse_x, playstate.mouse_y) ] then
-			love.graphics.setColor(color[img.color_name_by_actions( pathfinder:get_actions_remaining(playstate.mouse_x, playstate.mouse_y), 30 )] )
+			love.graphics.setColor(color[img.color_name_by_actions( pathfinder:get_actions_remaining(playstate.mouse_x, playstate.mouse_y) )] )
 			-- img.draw_to_grid("cursor_base", playstate.mouse_x, playstate.mouse_y)
 			if playstate.mouse_x ~= pathfinder.origin_x or playstate.mouse_y ~= pathfinder.origin_y then
 				img.draw_to_grid("cursor_circle_small", playstate.mouse_x, playstate.mouse_y)
@@ -293,7 +312,7 @@ function SelectedState:draw( playstate )
 				nx, ny = grid.neighbor(playstate.mouse_x, playstate.mouse_y, i)
 				if playstate.current_map:in_bounds(nx, ny) then
 					local b, b_elev = playstate.current_map:get_block(nx, ny)
-					love.graphics.setColor(color.yellow01)
+					love.graphics.setColor(color["yellow"..img.color_suffix_from_elev(b_elev)])
 					if b and block_data[b].floor then
 						img.draw_cover(nx, ny, playstate.current_map)
 					end

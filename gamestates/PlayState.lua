@@ -170,7 +170,7 @@ function PlayState:draw()
 	-- gui
 
 	-- debug msg
-	love.graphics.setColor( color.ltblue03 )
+	love.graphics.setColor( color.green )
 	love.graphics.print( "Time: "..string.format("%.0f", self.game_frame / 60), 2, 2 )
 	love.graphics.setColor( color.white )
 	if self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
