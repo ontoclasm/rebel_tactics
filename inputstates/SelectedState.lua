@@ -112,6 +112,7 @@ function SelectedState:draw( playstate )
 	img.update_terrain_batches(playstate.current_map)
 	local elev, nbr_elev, act, nbr_act
 	local neighborhood = {}
+	local diff_nbr, has_diff_nbr = false, false
 	local nx, ny
 	for i = 1, img.NUM_TERRAIN_LAYERS do
 		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
@@ -182,29 +183,50 @@ function SelectedState:draw( playstate )
 						act = 0
 						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
 						neighborhood = {}
+						has_diff_nbr = false
 						for dir = 1, 8 do
 							nx, ny = grid.neighbor(x,y,dir)
-							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+							diff_nbr = pathfinder:get_actions_remaining( nx, ny ) >= act
+							table.insert(neighborhood, diff_nbr)
+							if diff_nbr and dir % 2 == 1 then
+								has_diff_nbr = true
+							end
 						end
-						img.draw_region_tile("region_move", x, y, neighborhood)
+						if has_diff_nbr then
+							img.draw_region_tile("region_move", x, y, neighborhood)
+						end
 
 						-- then blue
 						act = 1
 						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
 						neighborhood = {}
+						has_diff_nbr = false
 						for dir = 1, 8 do
 							nx, ny = grid.neighbor(x,y,dir)
-							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+							diff_nbr = pathfinder:get_actions_remaining( nx, ny ) >= act
+							table.insert(neighborhood, diff_nbr)
+							if diff_nbr and dir % 2 == 1 then
+								has_diff_nbr = true
+							end
 						end
-						img.draw_region_tile("region_move", x, y, neighborhood)
+						if has_diff_nbr then
+							img.draw_region_tile("region_move", x, y, neighborhood)
+						end
 					elseif act == 0 then
 						love.graphics.setColor(color[img.color_name_by_actions( act, elev )])
 						neighborhood = {}
+						has_diff_nbr = false
 						for dir = 1, 8 do
 							nx, ny = grid.neighbor(x,y,dir)
-							table.insert(neighborhood, pathfinder:get_actions_remaining( nx, ny ) >= act)
+							diff_nbr = pathfinder:get_actions_remaining( nx, ny ) >= act
+							table.insert(neighborhood, diff_nbr)
+							if diff_nbr and dir % 2 == 1 then
+								has_diff_nbr = true
+							end
 						end
-						img.draw_region_tile("region_move", x, y, neighborhood)
+						if has_diff_nbr then
+							img.draw_region_tile("region_move", x, y, neighborhood)
+						end
 					end
 				end
 			end
@@ -305,7 +327,7 @@ function SelectedState:draw( playstate )
 			end
 
 			-- draw cover at mouse position
-			love.graphics.setColor(color.white)
+			love.graphics.setColor(color.yellow04)
 			img.draw_cover(playstate.mouse_x, playstate.mouse_y, playstate.current_map)
 
 			-- ...and in the surrounding 8 tiles
