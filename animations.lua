@@ -247,5 +247,10 @@ animations.functions["lean and shoot"] = function(anim, playstate, dt)
 	return false
 end
 
+animations.functions["set edge"] = function(anim, playstate, dt)
+	playstate.current_map:set_edge(anim.x, anim.y, anim.dir, anim.new_edge)
+
+	return true
+end
 
 return animations

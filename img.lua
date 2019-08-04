@@ -28,16 +28,18 @@ function img.setup()
 	img.nq_edge("edge_thick",				 0,	 0)
 	img.nq_edge("edge_thin",				 1,	 0)
 	img.nq_edge("edge_dotted",				 2,	 0)
+	img.nq_edge("edge_door",				 3,	 0)
+	img.nq_edge("edge_door_open",			 4,	 0)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)
 
-	img.tileset_batches = {}
+	img.terrain_batches = {}
 	for i = 1, img.NUM_TERRAIN_LAYERS do
-		img.tileset_batches[i] = love.graphics.newSpriteBatch(img.tileset, 2 * (img.view_tilewidth + 1) * (img.view_tileheight + 1))
+		img.terrain_batches[i] = love.graphics.newSpriteBatch(img.tileset, 2 * (img.view_tilewidth + 1) * (img.view_tileheight + 1))
 	end
 	-- img.tileset_batch = love.graphics.newSpriteBatch(img.tileset, 2 * (img.view_tilewidth + 1) * (img.view_tileheight + 1))
-	img.tileset_batches_are_dirty = true
+	img.terrain_batches_are_dirty = true
 end
 
 function img.nq(name, imgx, imgy)
@@ -67,9 +69,9 @@ function img.update_terrain_batches(map)
 	corner_x, corner_y = math.floor(camera.px/TILE_SIZE), math.floor(camera.py/TILE_SIZE)
 
 	-- rebuild the batch if we need to recenter it, or if the dirty flag is set
-	if img.tileset_batches_are_dirty or corner_x ~= old_corner_x or corner_y ~= old_corner_y then
+	if img.terrain_batches_are_dirty or corner_x ~= old_corner_x or corner_y ~= old_corner_y then
 		for i = 1, img.NUM_TERRAIN_LAYERS do
-			img.tileset_batches[i]:clear()
+			img.terrain_batches[i]:clear()
 		end
 
 		local thing, thing_elev, layer
@@ -81,8 +83,8 @@ function img.update_terrain_batches(map)
 					thing, thing_elev = map:get_block(x + corner_x, y + corner_y)
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
-						img.tileset_batches[layer]:setColor(block_data[thing].colors[thing_elev] or block_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[block_data[thing].tile], x * TILE_SIZE, y * TILE_SIZE)
+						img.terrain_batches[layer]:setColor(block_data[thing].colors[thing_elev] or block_data[thing].colors[-1])
+						img.terrain_batches[layer]:add(img.tile[block_data[thing].tile], x * TILE_SIZE, y * TILE_SIZE)
 					end
 				end
 			end
@@ -95,15 +97,15 @@ function img.update_terrain_batches(map)
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y, "n")
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
-						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - TILE_SIZE_QUARTER, y * TILE_SIZE - 4)
+						img.terrain_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.terrain_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - TILE_SIZE_QUARTER, y * TILE_SIZE - 4)
 					end
 				elseif map:in_bounds(x + corner_x, y + corner_y - 1) then -- southern edge
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y - 1, "s")
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
-						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - TILE_SIZE_QUARTER, y * TILE_SIZE - 4)
+						img.terrain_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.terrain_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE - TILE_SIZE_QUARTER, y * TILE_SIZE - 4)
 					end
 				end
 			end
@@ -114,15 +116,15 @@ function img.update_terrain_batches(map)
 					thing, thing_elev = map:get_edge(x + corner_x, y + corner_y, "w")
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
-						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - TILE_SIZE_QUARTER, PI_2)
+						img.terrain_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.terrain_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - TILE_SIZE_QUARTER, PI_2)
 					end
 				elseif map:in_bounds(x + corner_x - 1, y + corner_y) then -- eastern edge
 					thing, thing_elev = map:get_edge(x + corner_x - 1, y + corner_y, "e")
 					if thing then
 						layer = img.layer_from_elev( thing_elev )
-						img.tileset_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
-						img.tileset_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - TILE_SIZE_QUARTER, PI_2)
+						img.terrain_batches[layer]:setColor(edge_data[thing].colors[thing_elev] or edge_data[thing].colors[-1])
+						img.terrain_batches[layer]:add(img.tile[edge_data[thing].tile], x * TILE_SIZE + 4, y * TILE_SIZE - TILE_SIZE_QUARTER, PI_2)
 					end
 				end
 			end
@@ -142,11 +144,11 @@ function img.update_terrain_batches(map)
 		-- end
 
 		for i = 1, img.NUM_TERRAIN_LAYERS do
-			img.tileset_batches[i]:setColor(color.white)
+			img.terrain_batches[i]:setColor(color.white)
 		end
 
 		old_corner_x, old_corner_y = corner_x, corner_y
-		img.tileset_batches_are_dirty = false
+		img.terrain_batches_are_dirty = false
 	end
 end
 

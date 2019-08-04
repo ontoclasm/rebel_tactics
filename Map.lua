@@ -23,6 +23,7 @@ function Map:set_block( x, y, kind, elev)
 		error( "out of bounds: " .. x .. ", " .. y )
 	else
 		self.blocks[ x + (y - 1) * MAP_HASH ] = kind + 1000 * elev
+		img.terrain_batches_are_dirty = true
 	end
 end
 
@@ -81,6 +82,8 @@ function Map:set_edge( x, y, side, kind )
 		else
 			error( "bad edge: " .. side )
 		end
+
+		img.terrain_batches_are_dirty = true
 	end
 end
 
@@ -304,7 +307,7 @@ function Map:step_cost( from_x, from_y, dx, dy )
 			return self:diagonal_step_cost( from_x, from_y, dx, dy )
 		else
 			-- orth
-			return self:orth_step_cost( from_x, from_y, dx, dy )
+			return self:orth_step_cost( from_x, from_y, dx, dy, false )
 		end
 
 		-- return self:terrain_move_cost( from_x, from_y, dx, dy )
@@ -314,22 +317,22 @@ end
 function Map:diagonal_step_cost( from_x, from_y, dx, dy )
 	local a, a_e = self:get_block( from_x, from_y )
 	local b, b_e = self:get_block( from_x + dx, from_y + dy )
-	return (a_e == b_e and math.max( self:orth_step_cost( from_x, from_y, dx,0 ),
-									 self:orth_step_cost( from_x+dx, from_y, 0,dy ),
-									 self:orth_step_cost( from_x, from_y, 0,dy ),
-									 self:orth_step_cost( from_x, from_y+dy, dx,0 ) ) == 1) and 1 or 99
+	return (a_e == b_e and math.max( self:orth_step_cost( from_x, from_y, dx,0, true ),
+									 self:orth_step_cost( from_x+dx, from_y, 0,dy, true ),
+									 self:orth_step_cost( from_x, from_y, 0,dy, true ),
+									 self:orth_step_cost( from_x, from_y+dy, dx,0, true ) ) == 1) and 1 or 99
 end
 
-function Map:orth_step_cost( from_x, from_y, dx, dy )
+function Map:orth_step_cost( from_x, from_y, dx, dy, part_of_diagonal )
 	local a, a_e = self:get_block( from_x, from_y )
 	local b, b_e = self:get_block( from_x + dx, from_y + dy )
 	local edge, edge_elev = self:get_edge( from_x, from_y, grid.orth_dir_from_delta( dx, dy ))
 	if a and b then
 		local elev_diff
-		if edge then
-			elev_diff = math.max(edge_elev - a_e, b_e - a_e)
-		else
+		if not edge or edge_data[edge].floor or (not part_of_diagonal and edge_data[edge].is_door) then
 			elev_diff = b_e - a_e
+		else
+			elev_diff = math.max(edge_elev - a_e, b_e - a_e)
 		end
 
 		if elev_diff > 10 then
@@ -428,8 +431,10 @@ function Map:fill_debug()
 				end
 			else
 				local c = (self:get_block_kind(x,y) == 999 and 1 or 0) + (self:get_block_kind(x,y-1) == 999 and 1 or 0)
-				if c == 1 or (c == 0 and mymath.one_chance_in(32)) then
+				if c == 1 then
 					self:set_edge(x, y, "n", 999)
+				elseif c == 0 and mymath.one_chance_in(32) then
+					self:set_edge(x, y, "n", 30)
 				elseif c == 0 and mymath.one_chance_in(8) then
 					self:set_edge(x, y, "n", mymath.coinflip() and 10 or 20)
 				end
@@ -446,8 +451,10 @@ function Map:fill_debug()
 				end
 			else
 				local c = (self:get_block_kind(x,y) == 999 and 1 or 0) + (self:get_block_kind(x-1,y) == 999 and 1 or 0)
-				if c == 1 or (c == 0 and mymath.one_chance_in(32)) then
+				if c == 1 then
 					self:set_edge(x, y, "w", 999)
+				elseif c == 0 and mymath.one_chance_in(32) then
+					self:set_edge(x, y, "w", 30)
 				elseif c == 0 and mymath.one_chance_in(8) then
 					self:set_edge(x, y, "w", mymath.coinflip() and 10 or 20)
 				end

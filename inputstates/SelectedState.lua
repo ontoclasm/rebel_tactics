@@ -79,6 +79,7 @@ function SelectedState:update( playstate, dt )
 					p.actions = p.actions - action_cost
 
 					local x1,y1,x2,y2,kind,a_elev,b_elev,dir,edge
+					local first_step = true
 					playstate:enqueue_animation({ kind = "wait", duration = 0.1 })
 					for step = 1, #path - 1 do
 						x1, y1 = grid.unhash(path[step])
@@ -88,14 +89,23 @@ function SelectedState:update( playstate, dt )
 						b_elev = playstate.current_map:get_block_elev(x2,y2)
 						dir = (math.abs(x2-x1) + math.abs(y2-y1) == 1) and grid.orth_dir_from_delta(x2-x1,y2-y1) or nil
 						edge = dir and playstate.current_map:get_edge(x1,y1,dir) or nil
-						if a_elev ~= b_elev or (edge and not edge_data[edge].floor) then
+						if a_elev ~= b_elev
+							or (edge and not edge_data[edge].floor and not edge_data[edge].is_door) then
 							kind = "hop"
 						elseif step == (#path - 1) then
 							kind = "last step"
-						elseif step == 1 then
+						elseif first_step then
 							kind = "first step"
 						else
 							kind = "step"
+						end
+
+						if edge and edge_data[edge].is_door and edge_data[edge].door_opens_to then
+							playstate:enqueue_animation({ kind = "set edge", new_edge = edge_data[edge].door_opens_to, x = x1, y = y1, dir = dir })
+							playstate:enqueue_animation({ kind = "wait", duration = 0.1 })
+							first_step = true
+						else
+							first_step = false
 						end
 
 						-- step from x1y1 to x2y2
@@ -131,7 +141,7 @@ function SelectedState:draw( playstate )
 	local diff_nbr, has_diff_nbr = false, false
 	local nx, ny
 	for i = 1, img.NUM_TERRAIN_LAYERS do
-		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
+		love.graphics.draw(img.terrain_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 		--draw move radius by edges
 		-- for x = 1, playstate.current_map.width do
 		-- 	for y = 1, playstate.current_map.height do

@@ -64,6 +64,40 @@ edge_data = {
 		}
 	},
 
+	[ 30] = {
+		name = "door",
+		floor = false,
+		translucent = true,
+		permeable = true,
+		elev = 999,
+		cover_when_level = 2,
+		cover_when_above = 2,
+
+		is_door = true,
+		door_opens_to = 31,
+
+		tile = "edge_door",
+		colors = {
+			[-1] = color.brown,
+		}
+	},
+
+	[ 31] = {
+		name = "door_open",
+		floor = false,
+		translucent = true,
+		permeable = true,
+		elev = 999,
+		cover_when_level = 0,
+		cover_when_above = 1,
+
+		is_door = true,
+		tile = "edge_door_open",
+		colors = {
+			[-1] = color.brown,
+		}
+	},
+
 	[999] = {
 		name = "impassable wall",
 		floor = false,

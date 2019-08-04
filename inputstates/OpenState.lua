@@ -46,7 +46,7 @@ function OpenState:draw( playstate )
 
 	img.update_terrain_batches(playstate.current_map)
 	for i = 1, img.NUM_TERRAIN_LAYERS do
-		love.graphics.draw(img.tileset_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
+		love.graphics.draw(img.terrain_batches[i], -(camera.px % TILE_SIZE), -(camera.py % TILE_SIZE))
 	end
 
 	-- draw mouse cursor
