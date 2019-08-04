@@ -151,17 +151,17 @@ function img.update_terrain_batches(map)
 end
 
 local px, py
-function img.draw_to_grid(tilename, x, y, offset_x, offset_y, rotation)
+function img.draw_to_grid(tilename, x, y, offset_px, offset_py, rotation)
 	px, py = camera.screen_point_from_grid_point(x, y)
-	px = px + (offset_x or 0)
-	py = py + (offset_y or 0)
+	px = px + (offset_px or 0)
+	py = py + (offset_py or 0)
 	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_SIZE_HALF, TILE_SIZE_HALF)
 end
 
-function img.draw_to_grid_edge(tilename, x, y, offset_x, offset_y, rotation)
+function img.draw_to_grid_edge(tilename, x, y, offset_px, offset_py, rotation)
 	px, py = camera.screen_point_from_grid_point(x, y)
-	px = px + (offset_x or 0)
-	py = py + (offset_y or 0)
+	px = px + (offset_px or 0)
+	py = py + (offset_py or 0)
 	love.graphics.draw(img.tileset, img.tile[tilename], px, py, rotation or 0, 1, 1, TILE_SIZE_HALF + TILE_SIZE_QUARTER, TILE_SIZE_HALF + 4)
 end
 

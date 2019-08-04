@@ -56,7 +56,25 @@ function AimingState:update( playstate, dt )
 			if target then
 				-- FIRE
 				p.actions = p.actions - 1
-				playstate.pawn_list[target].alive = false
+
+				local lean_dir = self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)]
+				if lean_dir == "c" then
+					playstate:enqueue_animation({ kind = "shoot", pid = p.id, target_x = playstate.mouse_x, target_y = playstate.mouse_y,
+												  x = p.x, y = p.y })
+				elseif lean_dir == "s" then
+					playstate:enqueue_animation({ kind = "lean and shoot", pid = p.id, target_x = playstate.mouse_x, target_y = playstate.mouse_y,
+												  x1 = p.x, y1 = p.y, x2 = p.x, y2 = p.y+1 })
+				elseif lean_dir == "n" then
+					playstate:enqueue_animation({ kind = "lean and shoot", pid = p.id, target_x = playstate.mouse_x, target_y = playstate.mouse_y,
+												  x1 = p.x, y1 = p.y, x2 = p.x, y2 = p.y-1 })
+				elseif lean_dir == "e" then
+					playstate:enqueue_animation({ kind = "lean and shoot", pid = p.id, target_x = playstate.mouse_x, target_y = playstate.mouse_y,
+												  x1 = p.x, y1 = p.y, x2 = p.x+1, y2 = p.y })
+				elseif lean_dir == "w" then
+					playstate:enqueue_animation({ kind = "lean and shoot", pid = p.id, target_x = playstate.mouse_x, target_y = playstate.mouse_y,
+												  x1 = p.x, y1 = p.y, x2 = p.x-1, y2 = p.y })
+				end
+
 				if p.actions > 0 then
 					next_input_state = "Selected"
 				else
@@ -95,7 +113,7 @@ function AimingState:draw( playstate )
 		end
 	end
 
-	if self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
+	if (not playstate.current_animation) and self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
 		-- draw aim line for funsies
 		love.graphics.setColor(color.rouge)
 		local p = playstate:get_selected_pawn()
@@ -104,12 +122,19 @@ function AimingState:draw( playstate )
 		love.graphics.line(p_sx, p_sy, m_sx, m_sy)
 	end
 
+	-- draw gun lines
+	love.graphics.setColor(color.yellow03)
+	for k, v in pairs( playstate.gun_lines ) do
+		love.graphics.line(v[1], v[2], v[3], v[4])
+		playstate.gun_lines[k] = nil
+	end
+
 	-- draw pawns
 	for _, p in pairs(playstate.pawn_list) do
 		-- xxx cull off-screens?
 		love.graphics.setColor((p.id == playstate.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - self.start_frame) / 15))
 			or p.color)
-		img.draw_to_grid("pawn", p.x, p.y, p.offset_x, p.offset_y)
+		img.draw_to_grid("pawn", p.x, p.y, p.offset_px, p.offset_py)
 
 		-- if p.id == playstate.selected_pawn then
 		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - playstate.selected_start_frame) / 15)))

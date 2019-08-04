@@ -69,12 +69,19 @@ function OpenState:draw( playstate )
 		end
 	end
 
+	-- draw gun lines
+	love.graphics.setColor(color.yellow03)
+	for k, v in pairs( playstate.gun_lines ) do
+		love.graphics.line(v[1], v[2], v[3], v[4])
+		playstate.gun_lines[k] = nil
+	end
+
 	-- draw pawns
 	for _, p in pairs(playstate.pawn_list) do
 		-- xxx cull off-screens?
 		love.graphics.setColor((p.id == playstate.selected_pawn) and color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - playstate.selected_start_frame) / 15))
 			or p.color)
-		img.draw_to_grid("pawn", p.x, p.y, p.offset_x, p.offset_y)
+		img.draw_to_grid("pawn", p.x, p.y, p.offset_px, p.offset_py)
 
 		-- if p.id == playstate.selected_pawn then
 		-- 	love.graphics.setColor(color.mix(p.color, color.white, 0.5 + 0.5 * math.sin((gui_frame - playstate.selected_start_frame) / 15)))

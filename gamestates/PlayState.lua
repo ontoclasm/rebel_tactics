@@ -30,6 +30,7 @@ function PlayState:enter()
 	self.selected_pawn = nil
 
 	self.animation_queue = Queue()
+	self.gun_lines = {}
 
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
