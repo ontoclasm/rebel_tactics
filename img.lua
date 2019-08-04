@@ -25,11 +25,12 @@ function img.setup()
 
 	img.nq_region("region_move",			 0,	 6)
 
-	img.nq_edge("edge_thick",				 0,	 0)
-	img.nq_edge("edge_thin",				 1,	 0)
-	img.nq_edge("edge_dotted",				 2,	 0)
+	img.nq_edge("edge_wall_thick",			 0,	 0)
+	img.nq_edge("edge_wall_thin",			 1,	 0)
+	img.nq_edge("edge_wall_dotted",			 2,	 0)
 	img.nq_edge("edge_door",				 3,	 0)
 	img.nq_edge("edge_door_open",			 4,	 0)
+	img.nq_edge("edge_cover_thick",			 0,	 1)
 
 	img.view_tilewidth = math.ceil(window_w / TILE_SIZE)
 	img.view_tileheight = math.ceil(window_h / TILE_SIZE)

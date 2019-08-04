@@ -37,7 +37,7 @@ edge_data = {
 		cover_when_level = 1,
 		cover_when_above = 2,
 
-		tile = "edge_thin",
+		tile = "edge_wall_thin",
 		colors = {
 			[-1] = color.rouge,
 			[20] = color.grey02,
@@ -55,7 +55,7 @@ edge_data = {
 		cover_when_level = 2,
 		cover_when_above = 2,
 
-		tile = "edge_thick",
+		tile = "edge_cover_thick",
 		colors = {
 			[-1] = color.rouge,
 			[30] = color.grey03,
@@ -107,7 +107,7 @@ edge_data = {
 		cover_when_level = 2,
 		cover_when_above = 2,
 
-		tile = "edge_thick",
+		tile = "edge_wall_thick",
 		colors = {
 			[-1] = color.white,
 		}
