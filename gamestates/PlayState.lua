@@ -30,7 +30,6 @@ function PlayState:enter()
 	self.selected_pawn = nil
 
 	self.animation_queue = Queue()
-	self.animating = false
 
 	-- img.blood_canvas = love.graphics.newCanvas((mainmap.width + 4) * TILE_SIZE, (mainmap.height + 4) * TILE_SIZE)
 	-- img.blood_canvas:setFilter("linear", "nearest")
@@ -88,43 +87,13 @@ function PlayState:update( dt )
 			next_input_state = self.input_state.state:update( self, 0 )
 		end
 
-		if self.animating then
-			if self.current_animation then
-				-- currently only steps exist
-				if self.current_animation.t == 0 then
-					--start the animation
-					if self.current_map:get_pawn( self.current_animation.x1, self.current_animation.y1 ) ~= self.current_animation.pid then
-						error("pawn in wrong place??")
-					end
-
-					local p = self.pawn_list[self.current_animation.pid]
-					p.offset_x = TILE_SIZE * (self.current_animation.x1 - self.current_animation.x2)
-					p.offset_y = TILE_SIZE * (self.current_animation.y1 - self.current_animation.y2)
-					self.current_map:move_pawn( self.current_animation.x1, self.current_animation.y1, self.current_animation.x2, self.current_animation.y2 )
-					p.x, p.y = self.current_animation.x2, self.current_animation.y2
-
-					self.current_animation.t = self.current_animation.t + 8 * dt
-				elseif self.current_animation.t < 1 then
-					local p = self.pawn_list[self.current_animation.pid]
-					p.offset_x = mymath.abs_floor(TILE_SIZE * (self.current_animation.x1 - self.current_animation.x2) * (1 - self.current_animation.t))
-					p.offset_y = mymath.abs_floor(TILE_SIZE * (self.current_animation.y1 - self.current_animation.y2) * (1 - self.current_animation.t))
-
-					self.current_animation.t = self.current_animation.t + 8 * dt
-				else
-					-- anim finished
-					local p = self.pawn_list[self.current_animation.pid]
-					p.offset_x = 0
-					p.offset_y = 0
-
-					self.current_animation = nil
-				end
-			end
-
-			if not self.current_animation then
-				if self.animation_queue:is_empty() then
-					self.animating = false
-				else
+		if self.current_animation then
+			if animations.process(self.current_animation, self, dt) then
+				-- if true was returned, grab the next animation
+				if not self.animation_queue:is_empty() then
 					self.current_animation = self.animation_queue:dequeue()
+				else
+					self.current_animation = nil
 				end
 			end
 		end
@@ -235,6 +204,15 @@ function PlayState:get_next_pawn()
 	end
 
 	error("turn over!")
+end
+
+function PlayState:enqueue_animation(o)
+	o.t = 0
+	if not self.current_animation then
+		self.current_animation = o
+	else
+		self.animation_queue:enqueue(o)
+	end
 end
 
 function PlayState:pause()

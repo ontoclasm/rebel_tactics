@@ -49,7 +49,7 @@ function AimingState:update( playstate, dt )
 		end
 	elseif controller:pressed( 'b' ) then
 		next_input_state = "Selected"
-	elseif not playstate.animating then
+	elseif not playstate.current_animation then
 		-- enact orders
 		if controller:pressed( 'r2' ) and p.actions >= 1 and self.visible_tiles and self.visible_tiles[grid.hash(playstate.mouse_x, playstate.mouse_y)] then
 			local target = playstate.current_map:get_pawn(playstate.mouse_x, playstate.mouse_y)

@@ -4,6 +4,7 @@ baton = require "lib/baton"
 tiny = require "lib/tiny"
 fov = require "lib/rsfov"
 
+animations = require "animations"
 camera = require "camera"
 color = require "color"
 grid = require "grid"
