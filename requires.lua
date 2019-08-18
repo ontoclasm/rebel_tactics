@@ -19,10 +19,10 @@ StateManager = require "StateManager"
 
 require "data"
 
-font = love.graphics.newImageFont("assets/img/font.png",
+font = love.graphics.newImageFont("assets/img/font_thin.png",
 		" abcdefghijklmnopqrstuvwxyz" ..
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0" ..
-		"123456789.,!?-+/():;%&`'*#=[]\"|_")
+		"123456789.,!?-+/\\():;%&`'*#=[]\"|_")
 
 -- constants
 TILE_SIZE = 32
