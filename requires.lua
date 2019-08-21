@@ -19,7 +19,7 @@ StateManager = require "StateManager"
 
 require "data"
 
-font = love.graphics.newImageFont("assets/img/font_thin.png",
+font = love.graphics.newImageFont("assets/img/font_thin_large_soft.png",
 		" abcdefghijklmnopqrstuvwxyz" ..
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0" ..
 		"123456789.,!?-+/\\():;%&`'*#=[]\"|_")

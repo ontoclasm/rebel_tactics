@@ -142,7 +142,9 @@ function PlayState:draw()
 	-- debug msg
 	love.graphics.setColor( color.green )
 	love.graphics.print( "Time: "..string.format("%.0f", self.game_frame / 60), 2, 2 )
-	love.graphics.setColor( color.white )
+	love.graphics.setColor( color.yellow04 )
+	love.graphics.print( "I am Ozymandias, king of kings: look on my works, ye mighty, and despair", 2, window_h - 146 )
+	love.graphics.setColor( color.yellow04 )
 	if self.current_map:in_bounds( self.mouse_x, self.mouse_y ) then
 		local block, elev = self.current_map:get_block(self.mouse_x, self.mouse_y)
 		love.graphics.print( "block: "..(block or "x")..", elev: "..(elev or "x")..
@@ -150,10 +152,10 @@ function PlayState:draw()
 			", w: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "w") or "x")..
 			", s: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "s") or "x")..
 			", e: "..(self.current_map:get_edge(self.mouse_x, self.mouse_y, "e") or "x")..
-			", pawn: "..(self.current_map:get_pawn(self.mouse_x, self.mouse_y, "e") or "x"), 2, window_h - 58 )
+			", pawn: "..(self.current_map:get_pawn(self.mouse_x, self.mouse_y, "e") or "x"), 2, window_h - 110 )
 	end
-	love.graphics.print( "Cursor: "..self.mouse_x..", "..self.mouse_y, 2, window_h - 38 )
-	love.graphics.print( "FPS: "..love.timer.getFPS(), 2, window_h - 18 )
+	love.graphics.print( "Cursor: "..self.mouse_x..", "..self.mouse_y, 2, window_h - 74 )
+	love.graphics.print( "FPS: "..love.timer.getFPS(), 2, window_h - 38 )
 	love.graphics.setColor( color.white )
 	love.graphics.setShader()
 	if self.paused then
